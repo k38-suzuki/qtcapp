@@ -131,13 +131,13 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     ifc.ifc_ifcu.ifcu_buf = (char*)ifr;
     ioctl(fd, SIOCGIFCONF, &ifc);
     int nifs = ifc.ifc_len / sizeof(struct ifreq);
-    ifcCombo->addItem("lo");
     for (int j = 0; j < nifs; j++) {
         string interfaceName = string(ifr[j].ifr_name);
         if(interfaceName != "lo") {
             ifcCombo->addItem(QString::fromStdString(interfaceName));
         }
     }
+    ifcCombo->addItem("lo");
     ::close(fd);
 
     ifbCombo = new QComboBox();
