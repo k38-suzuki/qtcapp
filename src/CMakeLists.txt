@@ -8,16 +8,18 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
+QT5_ADD_RESOURCES(RC_SRCS qtc-app.qrc)
+
 set(sources
- main.cpp
- MainWindow.cpp
+    main.cpp
+    MainWindow.cpp
 )
 
 set(headers
-  MainWindow.h
+    MainWindow.h
 )
 
-add_executable(qtc-app ${sources} ${headers})
+add_executable(qtc-app ${sources} ${headers} ${RC_SRCS})
 target_link_libraries(qtc-app Qt5::Widgets)
 
 install (TARGETS qtc-app DESTINATION bin)

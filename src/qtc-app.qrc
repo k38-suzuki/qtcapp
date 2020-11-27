@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/qtc-app">
+        <file>icon/qtc-app.png</file>
+    </qresource>
+</RCC>
