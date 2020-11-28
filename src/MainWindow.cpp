@@ -1,3 +1,8 @@
+/*!
+  @file
+  @author Kenta Suzuki
+*/
+
 #include "MainWindow.h"
 #include <QComboBox>
 #include <QFrame>
@@ -10,7 +15,6 @@
 #include <QPushButton>
 #include <QSpinBox>
 #include <boost/format.hpp>
-#include <iostream>
 #include <sstream>
 #include <stdlib.h>
 #include <net/if.h>
@@ -77,6 +81,7 @@ class MainWindowImpl
 {
 public:
     MainWindowImpl(MainWindow* self);
+    ~MainWindowImpl();
     MainWindow* self;
     QWidget* widget;
 
@@ -203,8 +208,8 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     widget->setLayout(vbox);
     self->setCentralWidget(widget);
 
-    QObject::connect(clrButton, SIGNAL(clicked()), this->self, SLOT(onClearButtonClicked()));
-    QObject::connect(aplButton, SIGNAL(toggled(bool)), this->self, SLOT(onApplyButtonClicked(bool)));
+    QObject::connect(clrButton, SIGNAL(clicked()), self, SLOT(onClearButtonClicked()));
+    QObject::connect(aplButton, SIGNAL(toggled(bool)), self, SLOT(onApplyButtonClicked(bool)));
 }
 
 
@@ -212,6 +217,12 @@ MainWindow::~MainWindow()
 {
     impl->onTCFinalize();
     delete impl;
+}
+
+
+MainWindowImpl::~MainWindowImpl()
+{
+
 }
 
 

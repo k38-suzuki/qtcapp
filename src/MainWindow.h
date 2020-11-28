@@ -1,3 +1,8 @@
+/*!
+  @file
+  @author Kenta Suzuki
+*/
+
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
@@ -17,7 +22,7 @@ private:
     MainWindowImpl* impl;
     friend class MainWindowImpl;
 
-public slots:
+public Q_SLOTS:
     void onClearButtonClicked();
     void onApplyButtonClicked(bool on);
 };

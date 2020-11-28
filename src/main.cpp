@@ -1,3 +1,8 @@
+/*!
+  @file
+  @author Kenta Suzuki
+*/
+
 #include "MainWindow.h"
 #include <QApplication>
 
