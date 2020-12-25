@@ -3,8 +3,8 @@
   @author Kenta Suzuki
 */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef QTC_APP_MAIN_WINDOW_H
+#define QTC_APP_MAIN_WINDOW_H
 
 #include <QMainWindow>
 
@@ -27,4 +27,4 @@ public Q_SLOTS:
     void onApplyButtonClicked(bool on);
 };
 
-#endif // MAINWINDOW_H
+#endif // QTC_APP_MAIN_WINDOW_H

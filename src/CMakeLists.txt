@@ -2,10 +2,12 @@ QT5_ADD_RESOURCES(RC_SRCS qtc-app.qrc)
 
 set(sources
     main.cpp
+    AdvancedSettingsDialog.cpp
     MainWindow.cpp
 )
 
 set(headers
+    AdvancedSettingsDialog.h
     MainWindow.h
 )
 

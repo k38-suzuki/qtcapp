@@ -22,6 +22,8 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <iostream>
+#include "AdvancedSettingsDialog.h"
 
 #define IFR_MAX 10
 #define DELAY_MAX 100000
@@ -84,6 +86,7 @@ public:
     ~MainWindowImpl();
     MainWindow* self;
     QWidget* widget;
+    AdvancedSettingsDialog* dialog;
 
     QComboBox* ifcCombo;
     QComboBox* ifbCombo;
@@ -91,9 +94,11 @@ public:
     QLineEdit* dstLine;
 
     QSpinBox* idelaySpin;
+    QSpinBox* ijitterSpin;
     QSpinBox* irateSpin;
     QSpinBox* ilossSpin;
     QSpinBox* odelaySpin;
+    QSpinBox* ojitterSpin;
     QSpinBox* orateSpin;
     QSpinBox* olossSpin;
 
@@ -124,6 +129,12 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     self->setWindowTitle("QtcApp");
 
     widget = new QWidget();
+
+    dialog = new AdvancedSettingsDialog();
+    QPushButton* settingsButton = new QPushButton("Advanced Settings");
+    QHBoxLayout* abox = new QHBoxLayout();
+    abox->addStretch();
+    abox->addWidget(settingsButton);
 
     QVBoxLayout* vbox = new QVBoxLayout();
     ifcCombo = new QComboBox();
@@ -167,26 +178,34 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 
     idelaySpin = new QSpinBox();
     idelaySpin->setRange(0, DELAY_MAX);
+    ijitterSpin = new QSpinBox();
+    ijitterSpin->setRange(0, DELAY_MAX);
     irateSpin = new QSpinBox();
     irateSpin->setRange(0, RATE_MAX);
     ilossSpin = new QSpinBox();
     ilossSpin->setRange(0, LOSS_MAX);
     odelaySpin = new QSpinBox();
     odelaySpin->setRange(0, DELAY_MAX);
+    ojitterSpin = new QSpinBox();
+    ojitterSpin->setRange(0, DELAY_MAX);
     orateSpin = new QSpinBox();
     orateSpin->setRange(0, RATE_MAX);
     olossSpin = new QSpinBox();
     olossSpin->setRange(0, LOSS_MAX);
 
     QGridLayout* pbox = new QGridLayout();
-    pbox->addWidget(new QLabel(QLabel::tr("Inbound Dealy [ms]")), 0, 0);
+    pbox->addWidget(new QLabel(QLabel::tr("Inbound Dealy [ms] / Jitter [ms]")), 0, 0);
     pbox->addWidget(idelaySpin, 0, 1);
+    pbox->addWidget(new QLabel(QLabel::tr("/")), 0, 2);
+    pbox->addWidget(ijitterSpin, 0, 3);
     pbox->addWidget(new QLabel(QLabel::tr("Inbound Rate [kbit/s]")), 1, 0);
     pbox->addWidget(irateSpin, 1, 1);
     pbox->addWidget(new QLabel(QLabel::tr("Inbound Loss [%]")), 2, 0);
     pbox->addWidget(ilossSpin, 2, 1);
-    pbox->addWidget(new QLabel(QLabel::tr("Outbound Dealy [ms]")), 3, 0);
+    pbox->addWidget(new QLabel(QLabel::tr("Outbound Dealy [ms] / Jitter [ms]")), 3, 0);
     pbox->addWidget(odelaySpin, 3, 1);
+    pbox->addWidget(new QLabel(QLabel::tr("/")), 3, 2);
+    pbox->addWidget(ojitterSpin, 3, 3);
     pbox->addWidget(new QLabel(QLabel::tr("Outbound Rate [kbit/s]")), 4, 0);
     pbox->addWidget(orateSpin, 4, 1);
     pbox->addWidget(new QLabel(QLabel::tr("Outbound Loss [%]")), 5, 0);
@@ -203,6 +222,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     vbox->addLayout(sbox);
     vbox->addWidget(makeSeparator("Parameters"));
     vbox->addLayout(pbox);
+//    vbox->addLayout(abox);
     vbox->addWidget(makeSeparator(""));
     vbox->addLayout(tbox);
     widget->setLayout(vbox);
@@ -210,6 +230,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 
     QObject::connect(clrButton, SIGNAL(clicked()), self, SLOT(onClearButtonClicked()));
     QObject::connect(aplButton, SIGNAL(toggled(bool)), self, SLOT(onApplyButtonClicked(bool)));
+    QObject::connect(settingsButton, SIGNAL(clicked()), dialog, SLOT(show()));
 }
 
 
@@ -337,6 +358,24 @@ void MainWindowImpl::onTCExecute()
             effects[i] = (boost::format("%s%3.2lf%s")
                           % head[index].c_str() % value[i] % unit[index].c_str()
                         ).str();
+            if(i == 0) {
+                double idelay = idelaySpin->value();
+                double ijitter = ijitterSpin->value();
+                if(ijitter <= idelay) {
+                    effects[i] = (boost::format("%s%3.2lf%s")
+                                  % effects[i].c_str() % ijitterSpin->value() % unit[index].c_str()
+                                ).str();
+                }
+
+            } else if(i == 3) {
+                double odelay = odelaySpin->value();
+                double ojitter = ojitterSpin->value();
+                if(ojitter <= odelay) {
+                    effects[i] = (boost::format("%s%3.2lf%s")
+                                  % effects[i].c_str() % ojitterSpin->value() % unit[index].c_str()
+                                ).str();
+                }
+            }
         }
         else {
             effects[i].clear();
@@ -406,6 +445,7 @@ void MainWindowImpl::onCommandExecute(const string& message)
         exit(EXIT_FAILURE);
     } else if(pid == 0) {
         int ret = system(message.c_str());
+//        cout << message << endl;
         exit(EXIT_SUCCESS);
     }
 }
