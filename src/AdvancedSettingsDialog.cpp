@@ -154,22 +154,6 @@ double AdvancedSettingsDialog::outboundReordering(int index)
 }
 
 
-void AdvancedSettingsDialog::onInboundReordering(bool on)
-{
-    impl->ireordering0->setEnabled(on);
-    impl->ireordering1->setEnabled(on);
-    impl->igap->setEnabled(!on);
-}
-
-
-void AdvancedSettingsDialog::onOutboundReordering(bool on)
-{
-    impl->oreordering0->setEnabled(on);
-    impl->oreordering1->setEnabled(on);
-    impl->ogap->setEnabled(!on);
-}
-
-
 void AdvancedSettingsDialog::clear()
 {
     impl->iduplication->setValue(0.0);

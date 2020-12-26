@@ -98,10 +98,12 @@ public:
     QSpinBox* ijitterSpin;
     QSpinBox* irateSpin;
     QDoubleSpinBox* ilossSpin;
+    QSpinBox* ibLossSpin;
     QSpinBox* odelaySpin;
     QSpinBox* ojitterSpin;
     QSpinBox* orateSpin;
     QDoubleSpinBox* olossSpin;
+    QSpinBox* obLossSpin;
 
     QCheckBox* showCheck;
 
@@ -162,6 +164,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     ifbCombo = new QComboBox();
     const QStringList items = { "ifb0", "ifb1" };
     ifbCombo->addItems(items);
+    ifbCombo->setEnabled(false);
 
     srcLine = new QLineEdit();
     srcLine->setText("0.0.0.0/0");
@@ -187,6 +190,8 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     irateSpin->setRange(0, RATE_MAX);
     ilossSpin = new QDoubleSpinBox();
     ilossSpin->setRange(0, LOSS_MAX);
+    ibLossSpin = new QSpinBox();
+    ibLossSpin->setRange(0, LOSS_MAX);
     odelaySpin = new QSpinBox();
     odelaySpin->setRange(0, DELAY_MAX);
     ojitterSpin = new QSpinBox();
@@ -195,6 +200,8 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     orateSpin->setRange(0, RATE_MAX);
     olossSpin = new QDoubleSpinBox();
     olossSpin->setRange(0, LOSS_MAX);
+    obLossSpin = new QSpinBox();
+    obLossSpin->setRange(0, LOSS_MAX);
 
     QGridLayout* pbox = new QGridLayout();
     pbox->addWidget(new QLabel(QLabel::tr("Inbound Dealy [ms] / Jitter [ms]")), 0, 0);
@@ -203,16 +210,20 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     pbox->addWidget(ijitterSpin, 0, 3);
     pbox->addWidget(new QLabel(QLabel::tr("Inbound Rate [kbit/s]")), 1, 0);
     pbox->addWidget(irateSpin, 1, 1);
-    pbox->addWidget(new QLabel(QLabel::tr("Inbound Loss [%]")), 2, 0);
+    pbox->addWidget(new QLabel(QLabel::tr("Inbound Loss [%] / Burst Loss [%]")), 2, 0);
     pbox->addWidget(ilossSpin, 2, 1);
+    pbox->addWidget(new QLabel(QLabel::tr("/")), 2, 2);
+    pbox->addWidget(ibLossSpin, 2, 3);
     pbox->addWidget(new QLabel(QLabel::tr("Outbound Dealy [ms] / Jitter [ms]")), 3, 0);
     pbox->addWidget(odelaySpin, 3, 1);
     pbox->addWidget(new QLabel(QLabel::tr("/")), 3, 2);
     pbox->addWidget(ojitterSpin, 3, 3);
     pbox->addWidget(new QLabel(QLabel::tr("Outbound Rate [kbit/s]")), 4, 0);
     pbox->addWidget(orateSpin, 4, 1);
-    pbox->addWidget(new QLabel(QLabel::tr("Outbound Loss [%]")), 5, 0);
+    pbox->addWidget(new QLabel(QLabel::tr("Outbound Loss [%] / Burst Loss [%]")), 5, 0);
     pbox->addWidget(olossSpin, 5, 1);
+    pbox->addWidget(new QLabel(QLabel::tr("/")), 5, 2);
+    pbox->addWidget(obLossSpin, 5, 3);
 
     QHBoxLayout* tbox = new QHBoxLayout();
     clrButton = new QPushButton(QPushButton::tr("Clear"));
@@ -223,7 +234,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 
     showCheck = new QCheckBox();
     showCheck->setText(QCheckBox::tr("Show commands"));
-    showCheck->setChecked(false);
+    showCheck->setChecked(true);
 
     QHBoxLayout* asbox = new QHBoxLayout();
     asbox->addStretch();
@@ -292,11 +303,13 @@ void MainWindow::onClearButtonClicked()
     impl->idelaySpin->setValue(0);
     impl->ijitterSpin->setValue(0);
     impl->irateSpin->setValue(0);
-    impl->ilossSpin->setValue(0);
+    impl->ilossSpin->setValue(0.0);
+    impl->ibLossSpin->setValue(0);
     impl->odelaySpin->setValue(0);
     impl->ojitterSpin->setValue(0);
     impl->orateSpin->setValue(0);
-    impl->olossSpin->setValue(0);
+    impl->olossSpin->setValue(0.0);
+    impl->obLossSpin->setValue(0);
     impl->dialog->clear();
 }
 
@@ -316,24 +329,25 @@ void MainWindow::onApplyButtonClicked(bool on)
 
 void MainWindowImpl::onTCInitialize()
 {
-    string message = (
-                boost::format("sudo modprobe ifb;\n"
-                              "sudo modprobe act_mirred;\n"
-                              "sudo ip link set dev %s up;\n")
-                % ifbCombo->currentText().toStdString().c_str()).str();
+    string ifbName = ifbCombo->currentText().toStdString();
+    string message = (boost::format("sudo modprobe ifb;\n"
+                                    "sudo modprobe act_mirred;\n"
+                                    "sudo ip link set dev %s up;\n")
+                % ifbName.c_str()).str();
     onCommandExecute(message);
 }
 
 
 void MainWindowImpl::onTCClear()
 {
-    string message = (
-                boost::format("sudo tc qdisc del dev %s ingress;\n"
-                              "sudo tc qdisc del dev %s root;\n"
-                              "sudo tc qdisc del dev %s root;\n")
-                % ifcCombo->currentText().toStdString().c_str()
-                % ifbCombo->currentText().toStdString().c_str()
-                % ifcCombo->currentText().toStdString().c_str()
+    string ifcName = ifcCombo->currentText().toStdString();
+    string ifbName = ifbCombo->currentText().toStdString();
+    string message = (boost::format("sudo tc qdisc del dev %s ingress;\n"
+                                    "sudo tc qdisc del dev %s root;\n"
+                                    "sudo tc qdisc del dev %s root;\n")
+                % ifcName.c_str()
+                % ifbName.c_str()
+                % ifcName.c_str()
                 ).str();
     onCommandExecute(message);
 }
@@ -341,10 +355,10 @@ void MainWindowImpl::onTCClear()
 
 void MainWindowImpl::onTCFinalize()
 {
-    string message = (
-                boost::format("sudo ip link set dev %s down;\n"
-                              "sudo rmmod ifb;\n")
-                % ifbCombo->currentText().toStdString().c_str()
+    string ifbName = ifbCombo->currentText().toStdString();
+    string message = (boost::format("sudo ip link set dev %s down;\n"
+                                    "sudo rmmod ifb;\n")
+                % ifbName.c_str()
                 ).str();
     onCommandExecute(message);
 }
@@ -352,7 +366,10 @@ void MainWindowImpl::onTCFinalize()
 
 void MainWindowImpl::onTCExecute()
 {
-    if(ifcCombo->currentText().toStdString().empty()) {
+    string ifcName = ifcCombo->currentText().toStdString();
+    string ifbName = ifbCombo->currentText().toStdString();
+
+    if(ifcName.empty()) {
         return;
     }
 
@@ -398,6 +415,16 @@ void MainWindowImpl::onTCExecute()
                                    % igap
                                 ).str();
                 }
+            } else if(i == 2) {
+                double iloss = ilossSpin->value();
+                double ibloss = ibLossSpin->value();
+
+                if((iloss > 0.0) && (ibloss > 0.0)) {
+                    effects[i] += (boost::format(" %d%s")
+                                   % ibloss % ("%")
+                                ).str();
+                }
+
             } else if(i == 5) {
                 double odelay = odelaySpin->value();
                 double ojitter = ojitterSpin->value();
@@ -418,9 +445,17 @@ void MainWindowImpl::onTCExecute()
                                    % ogap
                                 ).str();
                 }
+            } else if(i == 7) {
+                double oloss = olossSpin->value();
+                double obloss = obLossSpin->value();
+
+                if((oloss > 0.0) && (obloss > 0.0)) {
+                    effects[i] += (boost::format(" %d%s")
+                                   % obloss % ("%")
+                                ).str();
+                }
             }
-        }
-        else {
+        } else {
             effects[i].clear();
         }
     }
@@ -441,14 +476,14 @@ void MainWindowImpl::onTCExecute()
         dstMessage = (
                     boost::format("sudo tc qdisc add dev %s parent 1:2 handle 20: netem limit 2000%s%s%s%s%s;\n"
                                   "sudo tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip src %s match ip dst %s flowid 1:2;\n")
-                    % ifbCombo->currentText().toStdString().c_str() % effects[0].c_str() % effects[1].c_str() % effects[2].c_str() % effects[3].c_str() % effects[4].c_str()
-                    % ifbCombo->currentText().toStdString().c_str() % dstipName.c_str() % srcipName.c_str()
+                    % ifbName.c_str() % effects[0].c_str() % effects[1].c_str() % effects[2].c_str() % effects[3].c_str() % effects[4].c_str()
+                    % ifbName.c_str() % dstipName.c_str() % srcipName.c_str()
                     ).str();
         srcMessage = (
                     boost::format("sudo tc qdisc add dev %s parent 1:2 handle 20: netem limit 2000%s%s%s%s%s;\n"
                                   "sudo tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip src %s match ip dst %s flowid 1:2;\n")
-                    % ifcCombo->currentText().toStdString().c_str() % effects[5].c_str() % effects[6].c_str() % effects[7].c_str() % effects[8].c_str() % effects[9].c_str()
-                    % ifcCombo->currentText().toStdString().c_str() % srcipName.c_str() % dstipName.c_str()
+                    % ifcName.c_str() % effects[5].c_str() % effects[6].c_str() % effects[7].c_str() % effects[8].c_str() % effects[9].c_str()
+                    % ifcName.c_str() % srcipName.c_str() % dstipName.c_str()
                     ).str();
     }
     else {
@@ -467,13 +502,13 @@ void MainWindowImpl::onTCExecute()
                               "prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;\n"
                               "sudo tc qdisc add dev %s parent 1:1 handle 10: netem limit 2000;\n"
                               "%s")
-                % ifcCombo->currentText().toStdString().c_str()
-                % ifcCombo->currentText().toStdString().c_str() % ifbCombo->currentText().toStdString().c_str()
-                % ifbCombo->currentText().toStdString().c_str()
-                % ifbCombo->currentText().toStdString().c_str()
+                % ifcName.c_str()
+                % ifcName.c_str() % ifbName.c_str()
+                % ifbName.c_str()
+                % ifbName.c_str()
                 % dstMessage.c_str()
-                % ifcCombo->currentText().toStdString().c_str()
-                % ifcCombo->currentText().toStdString().c_str()
+                % ifcName.c_str()
+                % ifcName.c_str()
                 % srcMessage.c_str()
                 ).str();
 
