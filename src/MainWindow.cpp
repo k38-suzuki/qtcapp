@@ -97,11 +97,11 @@ public:
     QSpinBox* idelaySpin;
     QSpinBox* ijitterSpin;
     QSpinBox* irateSpin;
-    QSpinBox* ilossSpin;
+    QDoubleSpinBox* ilossSpin;
     QSpinBox* odelaySpin;
     QSpinBox* ojitterSpin;
     QSpinBox* orateSpin;
-    QSpinBox* olossSpin;
+    QDoubleSpinBox* olossSpin;
 
     QCheckBox* showCheck;
 
@@ -185,7 +185,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     ijitterSpin->setRange(0, DELAY_MAX);
     irateSpin = new QSpinBox();
     irateSpin->setRange(0, RATE_MAX);
-    ilossSpin = new QSpinBox();
+    ilossSpin = new QDoubleSpinBox();
     ilossSpin->setRange(0, LOSS_MAX);
     odelaySpin = new QSpinBox();
     odelaySpin->setRange(0, DELAY_MAX);
@@ -193,7 +193,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     ojitterSpin->setRange(0, DELAY_MAX);
     orateSpin = new QSpinBox();
     orateSpin->setRange(0, RATE_MAX);
-    olossSpin = new QSpinBox();
+    olossSpin = new QDoubleSpinBox();
     olossSpin->setRange(0, LOSS_MAX);
 
     QGridLayout* pbox = new QGridLayout();
@@ -380,15 +380,43 @@ void MainWindowImpl::onTCExecute()
             if(i == 0) {
                 double idelay = idelaySpin->value();
                 double ijitter = ijitterSpin->value();
-                if(ijitter <= idelay) {
-                    effects[i] += " " + to_string(ijitterSpin->value()) + "ms";
+                double ireordering0 = dialog->inboundReordering(0);
+                double ireordering1 = dialog->inboundReordering(1);
+                int igap = dialog->inboundReordering(2);
+                if((idelay > 0.0) && (ijitter > 0.0) && (ijitter <= idelay)) {
+                    effects[i] += (boost::format(" %dms")
+                                   % ijitter
+                                ).str();
                 }
-
+                if((idelay > 0.0) && (ireordering0 > 0.0) && (ireordering1 > 0.0)) {
+                    effects[i] += (boost::format(" reorder %d%s %d%s")
+                                   % ireordering0  % ("%") % ireordering1 % ("%")
+                                   ).str();
+                }
+                if((idelay > 0.0) && (ireordering0 > 0.0) && (ireordering1 > 0.0) && (igap > 0)) {
+                    effects[i] += (boost::format(" gap %d")
+                                   % igap
+                                ).str();
+                }
             } else if(i == 5) {
                 double odelay = odelaySpin->value();
                 double ojitter = ojitterSpin->value();
-                if(ojitter <= odelay) {
-                    effects[i] += " " + to_string(ojitterSpin->value()) + "ms";
+                double oreordering0 = dialog->outboundReordering(0);
+                double oreordering1 = dialog->outboundReordering(1);
+                int ogap = dialog->outboundReordering(2);
+                if((odelay > 0.0) && (ojitter > 0.0) && (ojitter <= odelay)) {
+                    effects[i] += (boost::format(" %dms")
+                                   % ojitter
+                                ).str();                }
+                if((odelay > 0.0) && (oreordering0 > 0.0) && (oreordering1 > 0.0)) {
+                    effects[i] += (boost::format(" reorder %d%s %d%s")
+                                   % oreordering0  % ("%") % oreordering1 % ("%")
+                                   ).str();
+                }
+                if((odelay > 0.0) && (oreordering0 > 0.0) && (oreordering1 > 0.0) && (ogap > 0)) {
+                    effects[i] += (boost::format(" gap %d")
+                                   % ogap
+                                ).str();
                 }
             }
         }

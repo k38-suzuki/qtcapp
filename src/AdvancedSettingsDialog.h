@@ -17,10 +17,12 @@ public:
     explicit AdvancedSettingsDialog(QDialog *parent = nullptr);
     virtual ~AdvancedSettingsDialog();
 
-    int inboundDuplication();
-    int inboundCorruption();
-    int outboundDuplication();
-    int outboundCorruption();
+    double inboundDuplication();
+    double inboundCorruption();
+    double inboundReordering(int index);
+    double outboundDuplication();
+    double outboundCorruption();
+    double outboundReordering(int index);
     void clear();
 
 private:
