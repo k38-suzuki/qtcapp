@@ -317,12 +317,14 @@ void MainWindow::onClearButtonClicked()
 void MainWindow::onApplyButtonClicked(bool on)
 {
     QPalette palette;
+
     if(on) {
         palette.setColor(QPalette::Button, QColor(Qt::red));
         impl->onTCExecute();
     } else {
         impl->onTCClear();
     }
+    impl->ifcCombo->setEnabled(!on);
     impl->aplButton->setPalette(palette);
 }
 
