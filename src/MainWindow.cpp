@@ -4,6 +4,7 @@
 */
 
 #include "MainWindow.h"
+#include <QCheckBox>
 #include <QComboBox>
 #include <QFrame>
 #include <QGridLayout>
@@ -101,6 +102,8 @@ public:
     QSpinBox* ojitterSpin;
     QSpinBox* orateSpin;
     QSpinBox* olossSpin;
+
+    QCheckBox* showCheck;
 
     QPushButton* clrButton;
     QPushButton* aplButton;
@@ -218,11 +221,20 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     tbox->addWidget(clrButton);
     tbox->addWidget(aplButton);
 
+    showCheck = new QCheckBox();
+    showCheck->setText(QCheckBox::tr("Show commands"));
+    showCheck->setChecked(false);
+
+    QHBoxLayout* asbox = new QHBoxLayout();
+    asbox->addStretch();
+    asbox->addWidget(showCheck);
+    asbox->addLayout(abox);
+
     vbox->addWidget(makeSeparator("Settings"));
     vbox->addLayout(sbox);
     vbox->addWidget(makeSeparator("Parameters"));
     vbox->addLayout(pbox);
-//    vbox->addLayout(abox);
+    vbox->addLayout(asbox);
     vbox->addWidget(makeSeparator(""));
     vbox->addLayout(tbox);
     widget->setLayout(vbox);
@@ -277,12 +289,15 @@ void MainWindow::onClearButtonClicked()
     impl->ifbCombo->setCurrentIndex(0);
     impl->srcLine->setText("0.0.0.0/0");
     impl->dstLine->setText("0.0.0.0/0");
-    impl->idelaySpin->setValue(0.0);
+    impl->idelaySpin->setValue(0);
+    impl->ijitterSpin->setValue(0);
     impl->irateSpin->setValue(0);
     impl->ilossSpin->setValue(0);
     impl->odelaySpin->setValue(0);
+    impl->ojitterSpin->setValue(0);
     impl->orateSpin->setValue(0);
     impl->olossSpin->setValue(0);
+    impl->dialog->clear();
 }
 
 
@@ -341,20 +356,24 @@ void MainWindowImpl::onTCExecute()
         return;
     }
 
-    string head[] = { " delay ", " rate ", " loss " };
-    string unit[] = { "ms", "kbps", "%" };
+    string head[] = { " delay ", " rate ", " loss ", " duplicate ", " corrupt " };
+    string unit[] = { "ms", "kbps", "%", "%", "%" };
     vector<double> value;
     value.push_back(idelaySpin->value());
     value.push_back(irateSpin->value());
     value.push_back(ilossSpin->value());
+    value.push_back(dialog->inboundDuplication());
+    value.push_back(dialog->inboundCorruption());
     value.push_back(odelaySpin->value());
     value.push_back(orateSpin->value());
     value.push_back(olossSpin->value());
+    value.push_back(dialog->outboundDuplication());
+    value.push_back(dialog->outboundDuplication());
 
-    string effects[6];
-    for(int i = 0; i < 6; i++) {
+    string effects[10];
+    for(int i = 0; i < 10; i++) {
         if(value[i] > 0.0) {
-            int index = i % 3;
+            int index = i % 5;
             effects[i] = (boost::format("%s%3.2lf%s")
                           % head[index].c_str() % value[i] % unit[index].c_str()
                         ).str();
@@ -362,18 +381,14 @@ void MainWindowImpl::onTCExecute()
                 double idelay = idelaySpin->value();
                 double ijitter = ijitterSpin->value();
                 if(ijitter <= idelay) {
-                    effects[i] = (boost::format("%s%3.2lf%s")
-                                  % effects[i].c_str() % ijitterSpin->value() % unit[index].c_str()
-                                ).str();
+                    effects[i] += " " + to_string(ijitterSpin->value()) + "ms";
                 }
 
-            } else if(i == 3) {
+            } else if(i == 5) {
                 double odelay = odelaySpin->value();
                 double ojitter = ojitterSpin->value();
                 if(ojitter <= odelay) {
-                    effects[i] = (boost::format("%s%3.2lf%s")
-                                  % effects[i].c_str() % ojitterSpin->value() % unit[index].c_str()
-                                ).str();
+                    effects[i] += " " + to_string(ojitterSpin->value()) + "ms";
                 }
             }
         }
@@ -396,15 +411,15 @@ void MainWindowImpl::onTCExecute()
 
     if((!srcipName.empty()) && (!dstipName.empty())) {
         dstMessage = (
-                    boost::format("sudo tc qdisc add dev %s parent 1:2 handle 20: netem limit 2000%s%s%s;\n"
+                    boost::format("sudo tc qdisc add dev %s parent 1:2 handle 20: netem limit 2000%s%s%s%s%s;\n"
                                   "sudo tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip src %s match ip dst %s flowid 1:2;\n")
-                    % ifbCombo->currentText().toStdString().c_str() % effects[0].c_str() % effects[1].c_str() % effects[2].c_str()
+                    % ifbCombo->currentText().toStdString().c_str() % effects[0].c_str() % effects[1].c_str() % effects[2].c_str() % effects[3].c_str() % effects[4].c_str()
                     % ifbCombo->currentText().toStdString().c_str() % dstipName.c_str() % srcipName.c_str()
                     ).str();
         srcMessage = (
-                    boost::format("sudo tc qdisc add dev %s parent 1:2 handle 20: netem limit 2000%s%s%s;\n"
+                    boost::format("sudo tc qdisc add dev %s parent 1:2 handle 20: netem limit 2000%s%s%s%s%s;\n"
                                   "sudo tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip src %s match ip dst %s flowid 1:2;\n")
-                    % ifcCombo->currentText().toStdString().c_str() % effects[3].c_str() % effects[4].c_str() % effects[5].c_str()
+                    % ifcCombo->currentText().toStdString().c_str() % effects[5].c_str() % effects[6].c_str() % effects[7].c_str() % effects[8].c_str() % effects[9].c_str()
                     % ifcCombo->currentText().toStdString().c_str() % srcipName.c_str() % dstipName.c_str()
                     ).str();
     }
@@ -445,7 +460,10 @@ void MainWindowImpl::onCommandExecute(const string& message)
         exit(EXIT_FAILURE);
     } else if(pid == 0) {
         int ret = system(message.c_str());
-//        cout << message << endl;
+        bool on = showCheck->isChecked();
+        if(on) {
+            cout << message << endl;
+        }
         exit(EXIT_SUCCESS);
     }
 }
