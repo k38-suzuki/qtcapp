@@ -15,6 +15,7 @@
 #include <QPalette>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QTabWidget>
 #include <boost/format.hpp>
 #include <sstream>
 #include <stdlib.h>
@@ -24,7 +25,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <iostream>
-#include "AdvancedSettingsDialog.h"
 
 #define IFR_MAX 10
 #define DELAY_MAX 100000
@@ -86,8 +86,6 @@ public:
     MainWindowImpl(MainWindow* self);
     ~MainWindowImpl();
     MainWindow* self;
-    QWidget* widget;
-    AdvancedSettingsDialog* dialog;
 
     QComboBox* ifcCombo;
     QComboBox* ifbCombo;
@@ -95,18 +93,30 @@ public:
     QLineEdit* dstLine;
 
     QSpinBox* idelaySpin;
-    QSpinBox* ijitterSpin;
     QSpinBox* irateSpin;
     QDoubleSpinBox* ilossSpin;
-    QSpinBox* ibLossSpin;
     QSpinBox* odelaySpin;
-    QSpinBox* ojitterSpin;
     QSpinBox* orateSpin;
     QDoubleSpinBox* olossSpin;
+
+    QSpinBox* ijitterSpin;
+    QDoubleSpinBox* iduplicateSpin;
+    QDoubleSpinBox* icorruptSpin;
+    QSpinBox* igapSpin;
+    QDoubleSpinBox* ireorderingSpin;
+    QDoubleSpinBox* icorrelationSpin;
+    QSpinBox* ibLossSpin;
+    QSpinBox* ojitterSpin;
     QSpinBox* obLossSpin;
+    QDoubleSpinBox* oduplicateSpin;
+    QDoubleSpinBox* ocorruptSpin;
+    QSpinBox* ogapSpin;
+    QDoubleSpinBox* oreorderingSpin;
+    QDoubleSpinBox* ocorrelationSpin;
 
     QCheckBox* showCheck;
 
+    QPushButton* settingsButton;
     QPushButton* clrButton;
     QPushButton* aplButton;
 
@@ -133,15 +143,9 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 {
     self->setWindowTitle("QtcApp");
 
-    widget = new QWidget();
-
-    dialog = new AdvancedSettingsDialog();
-    QPushButton* settingsButton = new QPushButton("Advanced Settings");
-    QHBoxLayout* abox = new QHBoxLayout();
-    abox->addStretch();
-    abox->addWidget(settingsButton);
-
-    QVBoxLayout* vbox = new QVBoxLayout();
+    // Base Tab
+    QWidget* bswidget = new QWidget();
+    QVBoxLayout* bsvbox = new QVBoxLayout();
     ifcCombo = new QComboBox();
 
     struct ifreq ifr[IFR_MAX];
@@ -152,7 +156,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     ifc.ifc_ifcu.ifcu_buf = (char*)ifr;
     ioctl(fd, SIOCGIFCONF, &ifc);
     int nifs = ifc.ifc_len / sizeof(struct ifreq);
-    for (int j = 0; j < nifs; j++) {
+    for(int j = 0; j < nifs; j++) {
         string interfaceName = string(ifr[j].ifr_name);
         if(interfaceName != "lo") {
             ifcCombo->addItem(QString::fromStdString(interfaceName));
@@ -184,46 +188,31 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 
     idelaySpin = new QSpinBox();
     idelaySpin->setRange(0, DELAY_MAX);
-    ijitterSpin = new QSpinBox();
-    ijitterSpin->setRange(0, DELAY_MAX);
     irateSpin = new QSpinBox();
     irateSpin->setRange(0, RATE_MAX);
     ilossSpin = new QDoubleSpinBox();
     ilossSpin->setRange(0, LOSS_MAX);
-    ibLossSpin = new QSpinBox();
-    ibLossSpin->setRange(0, LOSS_MAX);
     odelaySpin = new QSpinBox();
     odelaySpin->setRange(0, DELAY_MAX);
-    ojitterSpin = new QSpinBox();
-    ojitterSpin->setRange(0, DELAY_MAX);
     orateSpin = new QSpinBox();
     orateSpin->setRange(0, RATE_MAX);
     olossSpin = new QDoubleSpinBox();
     olossSpin->setRange(0, LOSS_MAX);
-    obLossSpin = new QSpinBox();
-    obLossSpin->setRange(0, LOSS_MAX);
 
-    QGridLayout* pbox = new QGridLayout();
-    pbox->addWidget(new QLabel(QLabel::tr("Inbound Dealy [ms] / Jitter [ms]")), 0, 0);
-    pbox->addWidget(idelaySpin, 0, 1);
-    pbox->addWidget(new QLabel(QLabel::tr("/")), 0, 2);
-    pbox->addWidget(ijitterSpin, 0, 3);
-    pbox->addWidget(new QLabel(QLabel::tr("Inbound Rate [kbit/s]")), 1, 0);
-    pbox->addWidget(irateSpin, 1, 1);
-    pbox->addWidget(new QLabel(QLabel::tr("Inbound Loss [%] / Burst Loss [%]")), 2, 0);
-    pbox->addWidget(ilossSpin, 2, 1);
-    pbox->addWidget(new QLabel(QLabel::tr("/")), 2, 2);
-    pbox->addWidget(ibLossSpin, 2, 3);
-    pbox->addWidget(new QLabel(QLabel::tr("Outbound Dealy [ms] / Jitter [ms]")), 3, 0);
-    pbox->addWidget(odelaySpin, 3, 1);
-    pbox->addWidget(new QLabel(QLabel::tr("/")), 3, 2);
-    pbox->addWidget(ojitterSpin, 3, 3);
-    pbox->addWidget(new QLabel(QLabel::tr("Outbound Rate [kbit/s]")), 4, 0);
-    pbox->addWidget(orateSpin, 4, 1);
-    pbox->addWidget(new QLabel(QLabel::tr("Outbound Loss [%] / Burst Loss [%]")), 5, 0);
-    pbox->addWidget(olossSpin, 5, 1);
-    pbox->addWidget(new QLabel(QLabel::tr("/")), 5, 2);
-    pbox->addWidget(obLossSpin, 5, 3);
+    QGridLayout* bsbox = new QGridLayout();
+    int bsindex = 0;
+    bsbox->addWidget(new QLabel(QLabel::tr("Inbound Dealy [ms]")), bsindex, 0);
+    bsbox->addWidget(idelaySpin, bsindex++, 1);
+    bsbox->addWidget(new QLabel(QLabel::tr("Inbound Rate [kbit/s]")), bsindex, 0);
+    bsbox->addWidget(irateSpin, bsindex++, 1);
+    bsbox->addWidget(new QLabel(QLabel::tr("Inbound Loss [%]")), bsindex, 0);
+    bsbox->addWidget(ilossSpin, bsindex++, 1);
+    bsbox->addWidget(new QLabel(QLabel::tr("Outbound Dealy [ms]")), bsindex, 0);
+    bsbox->addWidget(odelaySpin, bsindex++, 1);
+    bsbox->addWidget(new QLabel(QLabel::tr("Outbound Rate [kbit/s]")), bsindex, 0);
+    bsbox->addWidget(orateSpin, bsindex++, 1);
+    bsbox->addWidget(new QLabel(QLabel::tr("Outbound Loss [%]")), bsindex, 0);
+    bsbox->addWidget(olossSpin, bsindex++, 1);
 
     QHBoxLayout* tbox = new QHBoxLayout();
     clrButton = new QPushButton(QPushButton::tr("Clear"));
@@ -239,21 +228,92 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     QHBoxLayout* asbox = new QHBoxLayout();
     asbox->addStretch();
     asbox->addWidget(showCheck);
-    asbox->addLayout(abox);
 
-    vbox->addWidget(makeSeparator("Settings"));
-    vbox->addLayout(sbox);
-    vbox->addWidget(makeSeparator("Parameters"));
-    vbox->addLayout(pbox);
-    vbox->addLayout(asbox);
-    vbox->addWidget(makeSeparator(""));
-    vbox->addLayout(tbox);
-    widget->setLayout(vbox);
-    self->setCentralWidget(widget);
+    bsvbox->addWidget(makeSeparator("Settings"));
+    bsvbox->addLayout(sbox);
+    bsvbox->addWidget(makeSeparator("Parameters"));
+    bsvbox->addLayout(bsbox);
+    bsvbox->addLayout(asbox);
+    bsvbox->addWidget(makeSeparator(""));
+    bsvbox->addLayout(tbox);
+    bswidget->setLayout(bsvbox);
+
+    // Advanced Tab
+    ijitterSpin = new QSpinBox();
+    ijitterSpin->setRange(0, DELAY_MAX);
+    iduplicateSpin = new QDoubleSpinBox();
+    iduplicateSpin->setRange(0, 100.00);
+    icorruptSpin = new QDoubleSpinBox();
+    icorruptSpin->setRange(0, 100.0);
+    ireorderingSpin = new QDoubleSpinBox();
+    ireorderingSpin->setRange(0, 100.0);
+    icorrelationSpin = new QDoubleSpinBox();
+    icorrelationSpin->setRange(0, 100.0);
+    igapSpin = new QSpinBox();
+    igapSpin->setRange(0, 100);
+    ibLossSpin = new QSpinBox();
+    ibLossSpin->setRange(0, LOSS_MAX);
+    ojitterSpin = new QSpinBox();
+    ojitterSpin->setRange(0, DELAY_MAX);
+    obLossSpin = new QSpinBox();
+    obLossSpin->setRange(0, LOSS_MAX);
+    oduplicateSpin = new QDoubleSpinBox();
+    oduplicateSpin->setRange(0, 100.0);
+    ocorruptSpin = new QDoubleSpinBox();
+    ocorruptSpin->setRange(0, 100.0);
+    oreorderingSpin = new QDoubleSpinBox();
+    oreorderingSpin->setRange(0, 100.0);
+    ocorrelationSpin = new QDoubleSpinBox();
+    ocorrelationSpin->setRange(0, 100.0);
+    ogapSpin = new QSpinBox();
+    ogapSpin->setRange(0, 100);
+
+    QGridLayout* adbox = new QGridLayout();
+    int adindex = 0;
+    adbox->addWidget(new QLabel(QLabel::tr("Inbound Jitter [ms]")), adindex, 0);
+    adbox->addWidget(ijitterSpin, adindex++, 1);
+    adbox->addWidget(new QLabel(QLabel::tr("Inbound Duplication [%]")), adindex, 0);
+    adbox->addWidget(iduplicateSpin, adindex++, 1);
+    adbox->addWidget(new QLabel(QLabel::tr("Inbound Corruption [%]")), adindex, 0);
+    adbox->addWidget(icorruptSpin, adindex++, 1);
+    adbox->addWidget(new QLabel(QLabel::tr("Inbound Re-ordering [%]")), adindex, 0);
+    adbox->addWidget(ireorderingSpin, adindex++, 1);
+    adbox->addWidget(new QLabel(QLabel::tr("Inbound Correlation [%]")), adindex, 0);
+    adbox->addWidget(icorrelationSpin, adindex++, 1);
+    adbox->addWidget(new QLabel(QLabel::tr("Inbound Gap [distance]")), adindex, 0);
+    adbox->addWidget(igapSpin, adindex++, 1);
+    adbox->addWidget(new QLabel(QLabel::tr("Inbound Burst Loss [%]")), adindex, 0);
+    adbox->addWidget(ibLossSpin, adindex++, 1);
+    adbox->addWidget(new QLabel(QLabel::tr("Outbound Jitter [ms]")), adindex, 0);
+    adbox->addWidget(ojitterSpin, adindex++, 1);
+    adbox->addWidget(new QLabel(QLabel::tr("Outbound Burst Loss [%]")), adindex, 0);
+    adbox->addWidget(obLossSpin, adindex++, 1);
+    adbox->addWidget(new QLabel(QLabel::tr("Outbound Duplication [%]")), adindex, 0);
+    adbox->addWidget(oduplicateSpin, adindex++, 1);
+    adbox->addWidget(new QLabel(QLabel::tr("Outbound Corruption [%]")), adindex, 0);
+    adbox->addWidget(ocorruptSpin, adindex++, 1);
+    adbox->addWidget(new QLabel(QLabel::tr("Outbound Re-ordering [%]")), adindex, 0);
+    adbox->addWidget(oreorderingSpin, adindex++, 1);
+    adbox->addWidget(new QLabel(QLabel::tr("Outbound Correlation [%]")), adindex, 0);
+    adbox->addWidget(ocorrelationSpin, adindex++, 1);
+    adbox->addWidget(new QLabel(QLabel::tr("Outbound  Gap [distance]")), adindex, 0);
+    adbox->addWidget(ogapSpin, adindex++, 1);
+
+    QWidget* adwidget = new QWidget();
+    QVBoxLayout* advbox = new QVBoxLayout();
+    advbox->addWidget(makeSeparator("Advanced Parameters"));
+    advbox->addLayout(adbox);
+    advbox->addStretch();
+    adwidget->setLayout(advbox);
+
+    QTabWidget* tab = new QTabWidget();
+    tab->addTab(bswidget, QTabWidget::tr("Base"));
+    tab->addTab(adwidget, QTabWidget::tr("Advanced"));
+
+    self->setCentralWidget(tab);
 
     QObject::connect(clrButton, SIGNAL(clicked()), self, SLOT(onClearButtonClicked()));
     QObject::connect(aplButton, SIGNAL(toggled(bool)), self, SLOT(onApplyButtonClicked(bool)));
-    QObject::connect(settingsButton, SIGNAL(clicked()), dialog, SLOT(show()));
 }
 
 
@@ -301,16 +361,26 @@ void MainWindow::onClearButtonClicked()
     impl->srcLine->setText("0.0.0.0/0");
     impl->dstLine->setText("0.0.0.0/0");
     impl->idelaySpin->setValue(0);
-    impl->ijitterSpin->setValue(0);
     impl->irateSpin->setValue(0);
     impl->ilossSpin->setValue(0.0);
-    impl->ibLossSpin->setValue(0);
     impl->odelaySpin->setValue(0);
-    impl->ojitterSpin->setValue(0);
     impl->orateSpin->setValue(0);
     impl->olossSpin->setValue(0.0);
+
+    impl->ijitterSpin->setValue(0);
+    impl->iduplicateSpin->setValue(0.0);
+    impl->icorruptSpin->setValue(0.0);
+    impl->ireorderingSpin->setValue(0.0);
+    impl->icorrelationSpin->setValue(0.0);
+    impl->igapSpin->setValue(0);
+    impl->ibLossSpin->setValue(0);
+    impl->ojitterSpin->setValue(0);
+    impl->oduplicateSpin->setValue(0.0);
+    impl->ocorruptSpin->setValue(0.0);
+    impl->oreorderingSpin->setValue(0.0);
+    impl->ocorrelationSpin->setValue(0.0);
+    impl->ogapSpin->setValue(0);
     impl->obLossSpin->setValue(0);
-    impl->dialog->clear();
 }
 
 
@@ -381,13 +451,13 @@ void MainWindowImpl::onTCExecute()
     value.push_back(idelaySpin->value());
     value.push_back(irateSpin->value());
     value.push_back(ilossSpin->value());
-    value.push_back(dialog->inboundDuplication());
-    value.push_back(dialog->inboundCorruption());
+    value.push_back(iduplicateSpin->value());
+    value.push_back(icorruptSpin->value());
     value.push_back(odelaySpin->value());
     value.push_back(orateSpin->value());
     value.push_back(olossSpin->value());
-    value.push_back(dialog->outboundDuplication());
-    value.push_back(dialog->outboundDuplication());
+    value.push_back(oduplicateSpin->value());
+    value.push_back(ocorruptSpin->value());
 
     string effects[10];
     for(int i = 0; i < 10; i++) {
@@ -399,20 +469,20 @@ void MainWindowImpl::onTCExecute()
             if(i == 0) {
                 double idelay = idelaySpin->value();
                 double ijitter = ijitterSpin->value();
-                double ireordering0 = dialog->inboundReordering(0);
-                double ireordering1 = dialog->inboundReordering(1);
-                int igap = dialog->inboundReordering(2);
+                double ireordering = ireorderingSpin->value();
+                double icorrelation = icorrelationSpin->value();
+                int igap = igapSpin->value();
                 if((idelay > 0.0) && (ijitter > 0.0) && (ijitter <= idelay)) {
                     effects[i] += (boost::format(" %dms")
                                    % ijitter
                                 ).str();
                 }
-                if((idelay > 0.0) && (ireordering0 > 0.0) && (ireordering1 > 0.0)) {
+                if((idelay > 0.0) && (ireordering > 0.0) && (icorrelation > 0.0)) {
                     effects[i] += (boost::format(" reorder %d%s %d%s")
-                                   % ireordering0  % ("%") % ireordering1 % ("%")
+                                   % ireordering  % ("%") % icorrelation % ("%")
                                    ).str();
                 }
-                if((idelay > 0.0) && (ireordering0 > 0.0) && (ireordering1 > 0.0) && (igap > 0)) {
+                if((idelay > 0.0) && (ireordering > 0.0) && (icorrelation > 0.0) && (igap > 0)) {
                     effects[i] += (boost::format(" gap %d")
                                    % igap
                                 ).str();
@@ -430,19 +500,19 @@ void MainWindowImpl::onTCExecute()
             } else if(i == 5) {
                 double odelay = odelaySpin->value();
                 double ojitter = ojitterSpin->value();
-                double oreordering0 = dialog->outboundReordering(0);
-                double oreordering1 = dialog->outboundReordering(1);
-                int ogap = dialog->outboundReordering(2);
+                double oreordering = oreorderingSpin->value();
+                double ocorrelation = ocorrelationSpin->value();
+                int ogap = ogapSpin->value();
                 if((odelay > 0.0) && (ojitter > 0.0) && (ojitter <= odelay)) {
                     effects[i] += (boost::format(" %dms")
                                    % ojitter
                                 ).str();                }
-                if((odelay > 0.0) && (oreordering0 > 0.0) && (oreordering1 > 0.0)) {
+                if((odelay > 0.0) && (oreordering > 0.0) && (ocorrelation > 0.0)) {
                     effects[i] += (boost::format(" reorder %d%s %d%s")
-                                   % oreordering0  % ("%") % oreordering1 % ("%")
+                                   % oreordering  % ("%") % ocorrelation % ("%")
                                    ).str();
                 }
-                if((odelay > 0.0) && (oreordering0 > 0.0) && (oreordering1 > 0.0) && (ogap > 0)) {
+                if((odelay > 0.0) && (oreordering > 0.0) && (ocorrelation > 0.0) && (ogap > 0)) {
                     effects[i] += (boost::format(" gap %d")
                                    % ogap
                                 ).str();
