@@ -159,7 +159,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     QAction* quitAct = new QAction(QAction::tr("Quit"));
     fileMenu->addAction(quitAct);
 
-    // Base Tab
+    // Basic Tab
     QWidget* bswidget = new QWidget();
     QVBoxLayout* bsvbox = new QVBoxLayout();
     ifcCombo = new QComboBox();
@@ -192,14 +192,15 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     dstLine->setText("0.0.0.0/0");
 
     QGridLayout* sbox = new QGridLayout();
-    sbox->addWidget(new QLabel(QLabel::tr("Interface")), 0, 0);
-    sbox->addWidget(ifcCombo, 0, 1);
-    sbox->addWidget(new QLabel(QLabel::tr("IFB")), 1, 0);
-    sbox->addWidget(ifbCombo, 1, 1);
-    sbox->addWidget(new QLabel(QLabel::tr("Source IP")), 2, 0);
-    sbox->addWidget(srcLine, 2, 1);
-    sbox->addWidget(new QLabel(QLabel::tr("Destination IP")), 3, 0);
-    sbox->addWidget(dstLine, 3, 1);
+    int stindex = 0;
+    sbox->addWidget(new QLabel(QLabel::tr("Interface")), stindex, 0);
+    sbox->addWidget(ifcCombo, stindex++, 1);
+    sbox->addWidget(new QLabel(QLabel::tr("IFB")), stindex, 0);
+    sbox->addWidget(ifbCombo, stindex++, 1);
+    sbox->addWidget(new QLabel(QLabel::tr("Source IP")), stindex, 0);
+    sbox->addWidget(srcLine, stindex++, 1);
+    sbox->addWidget(new QLabel(QLabel::tr("Destination IP")), stindex, 0);
+    sbox->addWidget(dstLine, stindex++, 1);
 
     idelaySpin = new QSpinBox();
     idelaySpin->setRange(0, DELAY_MAX);
@@ -312,7 +313,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     tbox->addWidget(aplButton);
 
     QTabWidget* tab = new QTabWidget();
-    tab->addTab(bswidget, QTabWidget::tr("Base"));
+    tab->addTab(bswidget, QTabWidget::tr("Basic"));
     tab->addTab(adwidget, QTabWidget::tr("Advanced"));
 
     QWidget* central = new QWidget();
