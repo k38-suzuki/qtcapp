@@ -24,7 +24,9 @@ private:
 
 public Q_SLOTS:
     void onClearButtonClicked();
-    void onApplyButtonClicked(bool on);
+    void onApplyButtonToggled(bool on);
+    void onShowActionTriggered(bool on);
+    void onCurrentIFBChanged(QString ifbName);
 };
 
 #endif // QTC_APP_MAIN_WINDOW_H

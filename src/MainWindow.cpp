@@ -11,6 +11,8 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMenu>
+#include <QMenuBar>
 #include <QVBoxLayout>
 #include <QPalette>
 #include <QPushButton>
@@ -114,9 +116,9 @@ public:
     QDoubleSpinBox* oreorderingSpin;
     QDoubleSpinBox* ocorrelationSpin;
 
-    QCheckBox* showCheck;
+    QAction* showAct;
+    bool showCommands;
 
-    QPushButton* settingsButton;
     QPushButton* clrButton;
     QPushButton* aplButton;
 
@@ -143,6 +145,20 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 {
     self->setWindowTitle("QtcApp");
 
+    QMenu* fileMenu = self->menuBar()->addMenu(QMenu::tr("&File"));
+    QMenu* editMenu = self->menuBar()->addMenu(QMenu::tr("&Edit"));
+    QMenu* viewMenu = self->menuBar()->addMenu(QMenu::tr("&View"));
+    QMenu* toolMenu = self->menuBar()->addMenu(QMenu::tr("&Tool"));
+    QMenu* helpMenu = self->menuBar()->addMenu(QMenu::tr("&Help"));
+
+    QAction* showAct = new QAction(QAction::tr("Show commands"));
+    showAct->setCheckable(true);
+    showAct->setChecked(false);
+    editMenu->addAction(showAct);
+
+    QAction* quitAct = new QAction(QAction::tr("Quit"));
+    fileMenu->addAction(quitAct);
+
     // Base Tab
     QWidget* bswidget = new QWidget();
     QVBoxLayout* bsvbox = new QVBoxLayout();
@@ -168,7 +184,6 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     ifbCombo = new QComboBox();
     const QStringList items = { "ifb0", "ifb1" };
     ifbCombo->addItems(items);
-    ifbCombo->setEnabled(false);
 
     srcLine = new QLineEdit();
     srcLine->setText("0.0.0.0/0");
@@ -214,19 +229,10 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     bsbox->addWidget(new QLabel(QLabel::tr("Outbound Loss [%]")), bsindex, 0);
     bsbox->addWidget(olossSpin, bsindex++, 1);
 
-    showCheck = new QCheckBox();
-    showCheck->setText(QCheckBox::tr("Show commands"));
-    showCheck->setChecked(false);
-
-    QHBoxLayout* asbox = new QHBoxLayout();
-    asbox->addStretch();
-    asbox->addWidget(showCheck);
-
     bsvbox->addWidget(makeSeparator("Settings"));
     bsvbox->addLayout(sbox);
     bsvbox->addWidget(makeSeparator("Parameters"));
     bsvbox->addLayout(bsbox);
-    bsvbox->addLayout(asbox);
     bsvbox->addStretch();
     bswidget->setLayout(bsvbox);
 
@@ -318,7 +324,10 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     self->setCentralWidget(central);
 
     QObject::connect(clrButton, SIGNAL(clicked()), self, SLOT(onClearButtonClicked()));
-    QObject::connect(aplButton, SIGNAL(toggled(bool)), self, SLOT(onApplyButtonClicked(bool)));
+    QObject::connect(aplButton, SIGNAL(toggled(bool)), self, SLOT(onApplyButtonToggled(bool)));
+    QObject::connect(showAct, SIGNAL(triggered(bool)), self, SLOT(onShowActionTriggered(bool)));
+    QObject::connect(ifbCombo, SIGNAL(currentTextChanged(QString)), self, SLOT(onCurrentIFBChanged(QString)));
+    QObject::connect(quitAct, SIGNAL(triggered()), self, SLOT(close()));
 }
 
 
@@ -389,7 +398,7 @@ void MainWindow::onClearButtonClicked()
 }
 
 
-void MainWindow::onApplyButtonClicked(bool on)
+void MainWindow::onApplyButtonToggled(bool on)
 {
     QPalette palette;
 
@@ -400,7 +409,20 @@ void MainWindow::onApplyButtonClicked(bool on)
         impl->onTCClear();
     }
     impl->ifcCombo->setEnabled(!on);
+    impl->ifbCombo->setEnabled(!on);
     impl->aplButton->setPalette(palette);
+}
+
+
+void MainWindow::onShowActionTriggered(bool on)
+{
+    impl->showCommands = on;
+}
+
+
+void MainWindow::onCurrentIFBChanged(QString ifbName)
+{
+    impl->onTCInitialize();
 }
 
 
@@ -600,8 +622,7 @@ void MainWindowImpl::onCommandExecute(const string& message)
         exit(EXIT_FAILURE);
     } else if(pid == 0) {
         int ret = system(message.c_str());
-        bool on = showCheck->isChecked();
-        if(on) {
+        if(showCommands) {
             cout << message << endl;
         }
         exit(EXIT_SUCCESS);
