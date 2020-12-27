@@ -286,8 +286,6 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     adbox->addWidget(ibLossSpin, adindex++, 1);
     adbox->addWidget(new QLabel(QLabel::tr("Outbound Jitter [ms]")), adindex, 0);
     adbox->addWidget(ojitterSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QLabel::tr("Outbound Burst Loss [%]")), adindex, 0);
-    adbox->addWidget(obLossSpin, adindex++, 1);
     adbox->addWidget(new QLabel(QLabel::tr("Outbound Duplication [%]")), adindex, 0);
     adbox->addWidget(oduplicateSpin, adindex++, 1);
     adbox->addWidget(new QLabel(QLabel::tr("Outbound Corruption [%]")), adindex, 0);
@@ -298,6 +296,8 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     adbox->addWidget(ocorrelationSpin, adindex++, 1);
     adbox->addWidget(new QLabel(QLabel::tr("Outbound  Gap [distance]")), adindex, 0);
     adbox->addWidget(ogapSpin, adindex++, 1);
+    adbox->addWidget(new QLabel(QLabel::tr("Outbound Burst Loss [%]")), adindex, 0);
+    adbox->addWidget(obLossSpin, adindex++, 1);
 
     QWidget* adwidget = new QWidget();
     QVBoxLayout* advbox = new QVBoxLayout();
