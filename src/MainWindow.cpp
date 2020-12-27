@@ -214,13 +214,6 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     bsbox->addWidget(new QLabel(QLabel::tr("Outbound Loss [%]")), bsindex, 0);
     bsbox->addWidget(olossSpin, bsindex++, 1);
 
-    QHBoxLayout* tbox = new QHBoxLayout();
-    clrButton = new QPushButton(QPushButton::tr("Clear"));
-    aplButton = new QPushButton(QPushButton::tr("Apply"));
-    aplButton->setCheckable(true);
-    tbox->addWidget(clrButton);
-    tbox->addWidget(aplButton);
-
     showCheck = new QCheckBox();
     showCheck->setText(QCheckBox::tr("Show commands"));
     showCheck->setChecked(true);
@@ -234,8 +227,6 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     bsvbox->addWidget(makeSeparator("Parameters"));
     bsvbox->addLayout(bsbox);
     bsvbox->addLayout(asbox);
-    bsvbox->addWidget(makeSeparator(""));
-    bsvbox->addLayout(tbox);
     bswidget->setLayout(bsvbox);
 
     // Advanced Tab
@@ -306,11 +297,24 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     advbox->addStretch();
     adwidget->setLayout(advbox);
 
+    QHBoxLayout* tbox = new QHBoxLayout();
+    clrButton = new QPushButton(QPushButton::tr("Clear"));
+    aplButton = new QPushButton(QPushButton::tr("Apply"));
+    aplButton->setCheckable(true);
+    tbox->addWidget(clrButton);
+    tbox->addWidget(aplButton);
+
     QTabWidget* tab = new QTabWidget();
     tab->addTab(bswidget, QTabWidget::tr("Base"));
     tab->addTab(adwidget, QTabWidget::tr("Advanced"));
 
-    self->setCentralWidget(tab);
+    QWidget* central = new QWidget();
+    QVBoxLayout* vbox = new QVBoxLayout();
+    vbox->addWidget(tab);
+    vbox->addLayout(tbox);
+    central->setLayout(vbox);
+
+    self->setCentralWidget(central);
 
     QObject::connect(clrButton, SIGNAL(clicked()), self, SLOT(onClearButtonClicked()));
     QObject::connect(aplButton, SIGNAL(toggled(bool)), self, SLOT(onApplyButtonClicked(bool)));
