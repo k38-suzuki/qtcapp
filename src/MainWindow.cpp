@@ -216,7 +216,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 
     showCheck = new QCheckBox();
     showCheck->setText(QCheckBox::tr("Show commands"));
-    showCheck->setChecked(true);
+    showCheck->setChecked(false);
 
     QHBoxLayout* asbox = new QHBoxLayout();
     asbox->addStretch();
@@ -227,6 +227,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     bsvbox->addWidget(makeSeparator("Parameters"));
     bsvbox->addLayout(bsbox);
     bsvbox->addLayout(asbox);
+    bsvbox->addStretch();
     bswidget->setLayout(bsvbox);
 
     // Advanced Tab
