@@ -155,6 +155,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     showAct->setCheckable(true);
     showAct->setChecked(false);
     editMenu->addAction(showAct);
+    showCommands = false;
 
     QAction* quitAct = new QAction(QAction::tr("Quit"));
     fileMenu->addAction(quitAct);
