@@ -145,19 +145,19 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 {
     self->setWindowTitle("QtcApp");
 
-    QMenu* fileMenu = self->menuBar()->addMenu(QMenu::tr("&File"));
-    QMenu* editMenu = self->menuBar()->addMenu(QMenu::tr("&Edit"));
-    QMenu* viewMenu = self->menuBar()->addMenu(QMenu::tr("&View"));
-    QMenu* toolMenu = self->menuBar()->addMenu(QMenu::tr("&Tool"));
-    QMenu* helpMenu = self->menuBar()->addMenu(QMenu::tr("&Help"));
+    QMenu* fileMenu = self->menuBar()->addMenu(QObject::tr("&File"));
+    QMenu* editMenu = self->menuBar()->addMenu(QObject::tr("&Edit"));
+    QMenu* viewMenu = self->menuBar()->addMenu(QObject::tr("&View"));
+    QMenu* toolMenu = self->menuBar()->addMenu(QObject::tr("&Tool"));
+    QMenu* helpMenu = self->menuBar()->addMenu(QObject::tr("&Help"));
 
-    QAction* showAct = new QAction(QAction::tr("Show commands"));
+    QAction* showAct = new QAction(QObject::tr("Show commands"));
     showAct->setCheckable(true);
     showAct->setChecked(false);
     editMenu->addAction(showAct);
     showCommands = false;
 
-    QAction* quitAct = new QAction(QAction::tr("Quit"));
+    QAction* quitAct = new QAction(QObject::tr("Quit"));
     fileMenu->addAction(quitAct);
 
     // Basic Tab
@@ -194,13 +194,13 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 
     QGridLayout* sbox = new QGridLayout();
     int stindex = 0;
-    sbox->addWidget(new QLabel(QLabel::tr("Interface")), stindex, 0);
+    sbox->addWidget(new QLabel(QObject::tr("Interface")), stindex, 0);
     sbox->addWidget(ifcCombo, stindex++, 1);
-    sbox->addWidget(new QLabel(QLabel::tr("IFB")), stindex, 0);
+    sbox->addWidget(new QLabel(QObject::tr("IFB")), stindex, 0);
     sbox->addWidget(ifbCombo, stindex++, 1);
-    sbox->addWidget(new QLabel(QLabel::tr("Source IP")), stindex, 0);
+    sbox->addWidget(new QLabel(QObject::tr("Source IP")), stindex, 0);
     sbox->addWidget(srcLine, stindex++, 1);
-    sbox->addWidget(new QLabel(QLabel::tr("Destination IP")), stindex, 0);
+    sbox->addWidget(new QLabel(QObject::tr("Destination IP")), stindex, 0);
     sbox->addWidget(dstLine, stindex++, 1);
 
     idelaySpin = new QSpinBox();
@@ -218,17 +218,17 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 
     QGridLayout* bsbox = new QGridLayout();
     int bsindex = 0;
-    bsbox->addWidget(new QLabel(QLabel::tr("Inbound Dealy [ms]")), bsindex, 0);
+    bsbox->addWidget(new QLabel(QObject::tr("Inbound Dealy [ms]")), bsindex, 0);
     bsbox->addWidget(idelaySpin, bsindex++, 1);
-    bsbox->addWidget(new QLabel(QLabel::tr("Inbound Rate [kbit/s]")), bsindex, 0);
+    bsbox->addWidget(new QLabel(QObject::tr("Inbound Rate [kbit/s]")), bsindex, 0);
     bsbox->addWidget(irateSpin, bsindex++, 1);
-    bsbox->addWidget(new QLabel(QLabel::tr("Inbound Loss [%]")), bsindex, 0);
+    bsbox->addWidget(new QLabel(QObject::tr("Inbound Loss [%]")), bsindex, 0);
     bsbox->addWidget(ilossSpin, bsindex++, 1);
-    bsbox->addWidget(new QLabel(QLabel::tr("Outbound Dealy [ms]")), bsindex, 0);
+    bsbox->addWidget(new QLabel(QObject::tr("Outbound Dealy [ms]")), bsindex, 0);
     bsbox->addWidget(odelaySpin, bsindex++, 1);
-    bsbox->addWidget(new QLabel(QLabel::tr("Outbound Rate [kbit/s]")), bsindex, 0);
+    bsbox->addWidget(new QLabel(QObject::tr("Outbound Rate [kbit/s]")), bsindex, 0);
     bsbox->addWidget(orateSpin, bsindex++, 1);
-    bsbox->addWidget(new QLabel(QLabel::tr("Outbound Loss [%]")), bsindex, 0);
+    bsbox->addWidget(new QLabel(QObject::tr("Outbound Loss [%]")), bsindex, 0);
     bsbox->addWidget(olossSpin, bsindex++, 1);
 
     bsvbox->addWidget(makeSeparator("Settings"));
@@ -270,33 +270,33 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 
     QGridLayout* adbox = new QGridLayout();
     int adindex = 0;
-    adbox->addWidget(new QLabel(QLabel::tr("Inbound Jitter [ms]")), adindex, 0);
+    adbox->addWidget(new QLabel(QObject::tr("Inbound Jitter [ms]")), adindex, 0);
     adbox->addWidget(ijitterSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QLabel::tr("Inbound Duplication [%]")), adindex, 0);
+    adbox->addWidget(new QLabel(QObject::tr("Inbound Duplication [%]")), adindex, 0);
     adbox->addWidget(iduplicateSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QLabel::tr("Inbound Corruption [%]")), adindex, 0);
+    adbox->addWidget(new QLabel(QObject::tr("Inbound Corruption [%]")), adindex, 0);
     adbox->addWidget(icorruptSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QLabel::tr("Inbound Re-ordering [%]")), adindex, 0);
+    adbox->addWidget(new QLabel(QObject::tr("Inbound Re-ordering [%]")), adindex, 0);
     adbox->addWidget(ireorderingSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QLabel::tr("Inbound Correlation [%]")), adindex, 0);
+    adbox->addWidget(new QLabel(QObject::tr("Inbound Correlation [%]")), adindex, 0);
     adbox->addWidget(icorrelationSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QLabel::tr("Inbound Gap [distance]")), adindex, 0);
+    adbox->addWidget(new QLabel(QObject::tr("Inbound Gap [distance]")), adindex, 0);
     adbox->addWidget(igapSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QLabel::tr("Inbound Burst Loss [%]")), adindex, 0);
+    adbox->addWidget(new QLabel(QObject::tr("Inbound Burst Loss [%]")), adindex, 0);
     adbox->addWidget(ibLossSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QLabel::tr("Outbound Jitter [ms]")), adindex, 0);
+    adbox->addWidget(new QLabel(QObject::tr("Outbound Jitter [ms]")), adindex, 0);
     adbox->addWidget(ojitterSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QLabel::tr("Outbound Duplication [%]")), adindex, 0);
+    adbox->addWidget(new QLabel(QObject::tr("Outbound Duplication [%]")), adindex, 0);
     adbox->addWidget(oduplicateSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QLabel::tr("Outbound Corruption [%]")), adindex, 0);
+    adbox->addWidget(new QLabel(QObject::tr("Outbound Corruption [%]")), adindex, 0);
     adbox->addWidget(ocorruptSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QLabel::tr("Outbound Re-ordering [%]")), adindex, 0);
+    adbox->addWidget(new QLabel(QObject::tr("Outbound Re-ordering [%]")), adindex, 0);
     adbox->addWidget(oreorderingSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QLabel::tr("Outbound Correlation [%]")), adindex, 0);
+    adbox->addWidget(new QLabel(QObject::tr("Outbound Correlation [%]")), adindex, 0);
     adbox->addWidget(ocorrelationSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QLabel::tr("Outbound  Gap [distance]")), adindex, 0);
+    adbox->addWidget(new QLabel(QObject::tr("Outbound  Gap [distance]")), adindex, 0);
     adbox->addWidget(ogapSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QLabel::tr("Outbound Burst Loss [%]")), adindex, 0);
+    adbox->addWidget(new QLabel(QObject::tr("Outbound Burst Loss [%]")), adindex, 0);
     adbox->addWidget(obLossSpin, adindex++, 1);
 
     QWidget* adwidget = new QWidget();
@@ -307,15 +307,15 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     adwidget->setLayout(advbox);
 
     QHBoxLayout* tbox = new QHBoxLayout();
-    clrButton = new QPushButton(QPushButton::tr("Clear"));
-    aplButton = new QPushButton(QPushButton::tr("Apply"));
+    clrButton = new QPushButton(QObject::tr("Clear"));
+    aplButton = new QPushButton(QObject::tr("Apply"));
     aplButton->setCheckable(true);
     tbox->addWidget(clrButton);
     tbox->addWidget(aplButton);
 
     QTabWidget* tab = new QTabWidget();
-    tab->addTab(bswidget, QTabWidget::tr("Basic"));
-    tab->addTab(adwidget, QTabWidget::tr("Advanced"));
+    tab->addTab(bswidget, QObject::tr("Basic"));
+    tab->addTab(adwidget, QObject::tr("Advanced"));
 
     QWidget* central = new QWidget();
     QVBoxLayout* vbox = new QVBoxLayout();
