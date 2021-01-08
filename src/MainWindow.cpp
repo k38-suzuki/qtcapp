@@ -239,17 +239,17 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 
     QGridLayout* bsbox = new QGridLayout();
     int bsindex = 0;
-    bsbox->addWidget(new QLabel(QObject::tr("Inbound Dealy [ms]")), bsindex, 0);
+    bsbox->addWidget(new QLabel(QObject::tr("Inbound Dealy Time [ms]")), bsindex, 0);
     bsbox->addWidget(inboundDelayTimeSpin, bsindex++, 1);
-    bsbox->addWidget(new QLabel(QObject::tr("Inbound Loss [%]")), bsindex, 0);
+    bsbox->addWidget(new QLabel(QObject::tr("Inbound Loss Percent [%]")), bsindex, 0);
     bsbox->addWidget(inboundLossPercentSpin, bsindex++, 1);
-    bsbox->addWidget(new QLabel(QObject::tr("Inbound Rate [kbit/s]")), bsindex, 0);
+    bsbox->addWidget(new QLabel(QObject::tr("Inbound Rate Rate [kbit/s]")), bsindex, 0);
     bsbox->addWidget(inboundRateRateSpin, bsindex++, 1);
-    bsbox->addWidget(new QLabel(QObject::tr("Outbound Dealy [ms]")), bsindex, 0);
+    bsbox->addWidget(new QLabel(QObject::tr("Outbound Dealy Time [ms]")), bsindex, 0);
     bsbox->addWidget(outboundDelayTimeSpin, bsindex++, 1);
-    bsbox->addWidget(new QLabel(QObject::tr("Outbound Loss [%]")), bsindex, 0);
+    bsbox->addWidget(new QLabel(QObject::tr("Outbound Loss Percent [%]")), bsindex, 0);
     bsbox->addWidget(outboundLossPercentSpin, bsindex++, 1);
-    bsbox->addWidget(new QLabel(QObject::tr("Outbound Rate [kbit/s]")), bsindex, 0);
+    bsbox->addWidget(new QLabel(QObject::tr("Outbound Rate Rate [kbit/s]")), bsindex, 0);
     bsbox->addWidget(outboundRateRateSpin, bsindex++, 1);
 
     bsvbox->addWidget(makeSeparator("Settings"));
@@ -268,10 +268,15 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     inboundDelayCorrelationSpin = new QDoubleSpinBox();
     inboundDelayCorrelationSpin->setRange(0.0, 100.0);
     inboundDelayDistributionCheck = new QCheckBox();
+    inboundDelayDistributionCheck->setText("Inbound Delay Distribution [-]");
     inboundDelayDistributionCheck->setChecked(false);
     inboundDelayDistributionCombo = new QComboBox();
+    QStringList distributions = { "uniform", "normal", "pareto", "paretonormal" };
+    inboundDelayDistributionCombo->addItems(distributions);
+    inboundDelayDistributionCombo->setEnabled(false);
     inboundDelayDistributionCombo->setCurrentIndex(0);
     inboundLossRandomCheck = new QCheckBox();
+    inboundLossRandomCheck->setText("Inbound Loss Random [-]");
     inboundLossRandomCheck->setChecked(false);
     inboundLossCorrelationSpin = new QDoubleSpinBox();
     inboundLossCorrelationSpin->setRange(0.0, LOSS_MAX);
@@ -304,10 +309,14 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     outboundDelayCorrelationSpin = new QDoubleSpinBox();
     outboundDelayCorrelationSpin->setRange(0.0, 100.0);
     outboundDelayDistributionCheck = new QCheckBox();
+    outboundDelayDistributionCheck->setText("Outbound Delay Distribution [-]");
     outboundDelayDistributionCheck->setChecked(false);
     outboundDelayDistributionCombo = new QComboBox();
+    outboundDelayDistributionCombo->setEnabled(false);
+    outboundDelayDistributionCombo->addItems(distributions);
     outboundDelayDistributionCombo->setCurrentIndex(0);
     outboundLossRandomCheck = new QCheckBox();
+    outboundLossRandomCheck->setText("Outbound Loss Random [-]");
     outboundLossRandomCheck->setChecked(false);
     outboundLossCorrelationSpin = new QDoubleSpinBox();
     outboundLossCorrelationSpin->setRange(0.0, LOSS_MAX);
@@ -334,34 +343,68 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 
     QGridLayout* adbox = new QGridLayout();
     int adindex = 0;
-    adbox->addWidget(new QLabel(QObject::tr("Inbound Jitter [ms]")), adindex, 0);
-    adbox->addWidget(inboundDelayJitterSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Inbound Duplication [%]")), adindex, 0);
-    adbox->addWidget(inboundDuplicationPercentSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Inbound Corruption [%]")), adindex, 0);
-    adbox->addWidget(inboundCorruptPercentSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Inbound Re-ordering [%]")), adindex, 0);
-    adbox->addWidget(inboundReorderingPercentSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Inbound Correlation [%]")), adindex, 0);
-    adbox->addWidget(inboundReorderingCorrelationSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Inbound Gap [distance]")), adindex, 0);
-    adbox->addWidget(inboundReorderingDistanceSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Inbound Burst Loss [%]")), adindex, 0);
-    adbox->addWidget(inboundLossCorrelationSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Outbound Jitter [ms]")), adindex, 0);
-    adbox->addWidget(outboundDelayJitterSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Outbound Duplication [%]")), adindex, 0);
-    adbox->addWidget(outboundDuplicationPercentSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Outbound Corruption [%]")), adindex, 0);
-    adbox->addWidget(outboundCorruptPercentSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Outbound Re-ordering [%]")), adindex, 0);
-    adbox->addWidget(outboundReorderingPercentSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Outbound Correlation [%]")), adindex, 0);
-    adbox->addWidget(outboundReorderingCorrelationSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Outbound  Gap [distance]")), adindex, 0);
-    adbox->addWidget(outboundReorderingDistanceSpin, adindex++, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Outbound Burst Loss [%]")), adindex, 0);
-    adbox->addWidget(outboundLossCorrelationSpin, adindex++, 1);
+    adbox->addWidget(new QLabel(QObject::tr("Inbound Limit Packets [packets]")), adindex, 0);
+    adbox->addWidget(inboundLimitPacketsSpin, adindex, 1);
+    adbox->addWidget(new QLabel(QObject::tr("Outbound Limit Packets [packets]")), adindex, 2);
+    adbox->addWidget(outboundLimitPacketsSpin, adindex++, 3);
+    adbox->addWidget(new QLabel(QObject::tr("Inbound Delay Jitter [ms]")), adindex, 0);
+    adbox->addWidget(inboundDelayJitterSpin, adindex, 1);
+    adbox->addWidget(new QLabel(QObject::tr("Outbound Delay Jitter [ms]")), adindex, 2);
+    adbox->addWidget(outboundDelayJitterSpin, adindex++, 3);
+    adbox->addWidget(new QLabel(QObject::tr("Inbound Delay Correlation [%]")), adindex, 0);
+    adbox->addWidget(inboundDelayCorrelationSpin, adindex, 1);
+    adbox->addWidget(new QLabel(QObject::tr("Outbound Delay Correlation [%]")), adindex, 2);
+    adbox->addWidget(outboundDelayCorrelationSpin, adindex++, 3);
+    adbox->addWidget(inboundDelayDistributionCheck, adindex, 0);
+    adbox->addWidget(inboundDelayDistributionCombo, adindex, 1);
+    adbox->addWidget(outboundDelayDistributionCheck, adindex, 2);
+    adbox->addWidget(outboundDelayDistributionCombo, adindex++, 3);
+    adbox->addWidget(inboundLossRandomCheck, adindex, 0);
+    adbox->addWidget(outboundLossRandomCheck, adindex++, 2);
+    adbox->addWidget(new QLabel(QObject::tr("Inbound Loss Correlation [%]")), adindex, 0);
+    adbox->addWidget(inboundLossCorrelationSpin, adindex, 1);
+    adbox->addWidget(new QLabel(QObject::tr("Outbound Loss Correlation [%]")), adindex, 2);
+    adbox->addWidget(outboundLossCorrelationSpin, adindex++, 3);
+    adbox->addWidget(new QLabel(QObject::tr("Inbound Duplication Percent [%]")), adindex, 0);
+    adbox->addWidget(inboundDuplicationPercentSpin, adindex, 1);
+    adbox->addWidget(new QLabel(QObject::tr("Outbound Duplication Percent [%]")), adindex, 2);
+    adbox->addWidget(outboundDuplicationPercentSpin, adindex++, 3);
+    adbox->addWidget(new QLabel(QObject::tr("Inbound Duplication Correlation [%]")), adindex, 0);
+    adbox->addWidget(inboundDuplicationCorrelationSpin, adindex, 1);
+    adbox->addWidget(new QLabel(QObject::tr("Outbound Duplication Correlation [%]")), adindex, 2);
+    adbox->addWidget(outboundDuplicationCorrelationSpin, adindex++, 3);
+    adbox->addWidget(new QLabel(QObject::tr("Inbound Corruption Percent [%]")), adindex, 0);
+    adbox->addWidget(inboundCorruptPercentSpin, adindex, 1);
+    adbox->addWidget(new QLabel(QObject::tr("Outbound Corruption Percent [%]")), adindex, 2);
+    adbox->addWidget(outboundCorruptPercentSpin, adindex++, 3);
+    adbox->addWidget(new QLabel(QObject::tr("Inbound Corruption Correlation [%]")), adindex, 0);
+    adbox->addWidget(inboundCorruptCorrelationSpin, adindex, 1);
+    adbox->addWidget(new QLabel(QObject::tr("Outbound Corruption Correlation [%]")), adindex, 2);
+    adbox->addWidget(outboundCorruptCorrelationSpin, adindex++, 3);
+    adbox->addWidget(new QLabel(QObject::tr("Inbound Reordering Percent [%]")), adindex, 0);
+    adbox->addWidget(inboundReorderingPercentSpin, adindex, 1);
+    adbox->addWidget(new QLabel(QObject::tr("Outbound Reordering Percent [%]")), adindex, 2);
+    adbox->addWidget(outboundReorderingPercentSpin, adindex++, 3);
+    adbox->addWidget(new QLabel(QObject::tr("Inbound Reordering Correlation [%]")), adindex, 0);
+    adbox->addWidget(inboundReorderingCorrelationSpin, adindex, 1);
+    adbox->addWidget(new QLabel(QObject::tr("Outbound Reordering Correlation [%]")), adindex, 2);
+    adbox->addWidget(outboundReorderingCorrelationSpin, adindex++, 3);
+    adbox->addWidget(new QLabel(QObject::tr("Inbound Reordering Gap [distance]")), adindex, 0);
+    adbox->addWidget(inboundReorderingDistanceSpin, adindex, 1);
+    adbox->addWidget(new QLabel(QObject::tr("Outbound Reordering Gap [distance]")), adindex, 2);
+    adbox->addWidget(outboundReorderingDistanceSpin, adindex++, 3);
+    adbox->addWidget(new QLabel(QObject::tr("Inbound Rate Packet Overhead [%]")), adindex, 0);
+    adbox->addWidget(inboundRatePacketOverheadSpin, adindex, 1);
+    adbox->addWidget(new QLabel(QObject::tr("Outbound Rate Packet Overhead [%]")), adindex, 2);
+    adbox->addWidget(outboundRatePacketOverheadSpin, adindex++, 3);
+    adbox->addWidget(new QLabel(QObject::tr("Inbound Rate Cell Size [%]")), adindex, 0);
+    adbox->addWidget(inboundRateCellSizeSpin, adindex, 1);
+    adbox->addWidget(new QLabel(QObject::tr("Outbound Rate Cell Size [%]")), adindex, 2);
+    adbox->addWidget(outboundRateCellSizeSpin, adindex++, 3);
+    adbox->addWidget(new QLabel(QObject::tr("Inbound Rate Cell Overhead [%]")), adindex, 0);
+    adbox->addWidget(inboundRateCellOverheadSpin, adindex, 1);
+    adbox->addWidget(new QLabel(QObject::tr("Outbound Rate Cell Overhead [%]")), adindex, 2);
+    adbox->addWidget(outboundRateCellOverheadSpin, adindex++, 3);
 
     QWidget* adwidget = new QWidget();
     QVBoxLayout* advbox = new QVBoxLayout();
@@ -389,6 +432,9 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 
     self->setCentralWidget(central);
 
+
+    QObject::connect(inboundDelayDistributionCheck, SIGNAL(toggled(bool)), inboundDelayDistributionCombo, SLOT(setEnabled(bool)));
+    QObject::connect(outboundDelayDistributionCheck, SIGNAL(toggled(bool)), outboundDelayDistributionCombo, SLOT(setEnabled(bool)));
     QObject::connect(clrButton, SIGNAL(clicked()), self, SLOT(onClearButtonClicked()));
     QObject::connect(aplButton, SIGNAL(toggled(bool)), self, SLOT(onApplyButtonToggled(bool)));
     QObject::connect(showAct, SIGNAL(triggered(bool)), self, SLOT(onShowActionTriggered(bool)));
@@ -798,7 +844,7 @@ void MainWindowImpl::onCommandExecute(const string& message)
     if(pid == -1) {
         exit(EXIT_FAILURE);
     } else if(pid == 0) {
-//        int ret = system(message.c_str());
+        int ret = system(message.c_str());
         if(showCommands) {
             cout << message << endl;
         }
