@@ -16,7 +16,7 @@
 #include <QVBoxLayout>
 #include <QPalette>
 #include <QPushButton>
-#include <QSpinBox>
+#include <QDoubleSpinBox>
 #include <QTabWidget>
 #include <boost/format.hpp>
 #include <sstream>
@@ -94,27 +94,47 @@ public:
     QLineEdit* srcLine;
     QLineEdit* dstLine;
 
-    QSpinBox* idelaySpin;
-    QSpinBox* irateSpin;
-    QDoubleSpinBox* ilossSpin;
-    QSpinBox* odelaySpin;
-    QSpinBox* orateSpin;
-    QDoubleSpinBox* olossSpin;
+    QDoubleSpinBox* inboundLimitPacketsSpin;
+    QDoubleSpinBox* inboundDelayTimeSpin;
+    QDoubleSpinBox* inboundDelayJitterSpin;
+    QDoubleSpinBox* inboundDelayCorrelationSpin;
+    QCheckBox* inboundDelayDistributionCheck;
+    QComboBox* inboundDelayDistributionCombo;
+    QCheckBox* inboundLossRandomCheck;
+    QDoubleSpinBox* inboundLossPercentSpin;
+    QDoubleSpinBox* inboundLossCorrelationSpin;
+    QDoubleSpinBox* inboundCorruptPercentSpin;
+    QDoubleSpinBox* inboundCorruptCorrelationSpin;
+    QDoubleSpinBox* inboundDuplicationPercentSpin;
+    QDoubleSpinBox* inboundDuplicationCorrelationSpin;
+    QDoubleSpinBox* inboundReorderingPercentSpin;
+    QDoubleSpinBox* inboundReorderingCorrelationSpin;
+    QDoubleSpinBox* inboundReorderingDistanceSpin;
+    QDoubleSpinBox* inboundRateRateSpin;
+    QDoubleSpinBox* inboundRatePacketOverheadSpin;
+    QDoubleSpinBox* inboundRateCellSizeSpin;
+    QDoubleSpinBox* inboundRateCellOverheadSpin;
 
-    QSpinBox* ijitterSpin;
-    QDoubleSpinBox* iduplicateSpin;
-    QDoubleSpinBox* icorruptSpin;
-    QSpinBox* igapSpin;
-    QDoubleSpinBox* ireorderingSpin;
-    QDoubleSpinBox* icorrelationSpin;
-    QSpinBox* ibLossSpin;
-    QSpinBox* ojitterSpin;
-    QSpinBox* obLossSpin;
-    QDoubleSpinBox* oduplicateSpin;
-    QDoubleSpinBox* ocorruptSpin;
-    QSpinBox* ogapSpin;
-    QDoubleSpinBox* oreorderingSpin;
-    QDoubleSpinBox* ocorrelationSpin;
+    QDoubleSpinBox* outboundLimitPacketsSpin;
+    QDoubleSpinBox* outboundDelayTimeSpin;
+    QDoubleSpinBox* outboundDelayJitterSpin;
+    QDoubleSpinBox* outboundDelayCorrelationSpin;
+    QCheckBox* outboundDelayDistributionCheck;
+    QComboBox* outboundDelayDistributionCombo;
+    QCheckBox* outboundLossRandomCheck;
+    QDoubleSpinBox* outboundLossPercentSpin;
+    QDoubleSpinBox* outboundLossCorrelationSpin;
+    QDoubleSpinBox* outboundCorruptPercentSpin;
+    QDoubleSpinBox* outboundCorruptCorrelationSpin;
+    QDoubleSpinBox* outboundDuplicationPercentSpin;
+    QDoubleSpinBox* outboundDuplicationCorrelationSpin;
+    QDoubleSpinBox* outboundReorderingPercentSpin;
+    QDoubleSpinBox* outboundReorderingCorrelationSpin;
+    QDoubleSpinBox* outboundReorderingDistanceSpin;
+    QDoubleSpinBox* outboundRateRateSpin;
+    QDoubleSpinBox* outboundRatePacketOverheadSpin;
+    QDoubleSpinBox* outboundRateCellSizeSpin;
+    QDoubleSpinBox* outboundRateCellOverheadSpin;
 
     QAction* showAct;
     bool showCommands;
@@ -203,33 +223,34 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     sbox->addWidget(new QLabel(QObject::tr("Destination IP")), stindex, 0);
     sbox->addWidget(dstLine, stindex++, 1);
 
-    idelaySpin = new QSpinBox();
-    idelaySpin->setRange(0, DELAY_MAX);
-    irateSpin = new QSpinBox();
-    irateSpin->setRange(0, RATE_MAX);
-    ilossSpin = new QDoubleSpinBox();
-    ilossSpin->setRange(0, LOSS_MAX);
-    odelaySpin = new QSpinBox();
-    odelaySpin->setRange(0, DELAY_MAX);
-    orateSpin = new QSpinBox();
-    orateSpin->setRange(0, RATE_MAX);
-    olossSpin = new QDoubleSpinBox();
-    olossSpin->setRange(0, LOSS_MAX);
+    inboundDelayTimeSpin = new QDoubleSpinBox();
+    inboundDelayTimeSpin->setRange(0.0, DELAY_MAX);
+    inboundLossPercentSpin = new QDoubleSpinBox();
+    inboundLossPercentSpin->setRange(0.0, LOSS_MAX);
+    inboundRateRateSpin = new QDoubleSpinBox();
+    inboundRateRateSpin->setRange(0.0, RATE_MAX);
+
+    outboundDelayTimeSpin = new QDoubleSpinBox();
+    outboundDelayTimeSpin->setRange(0.0, DELAY_MAX);
+    outboundLossPercentSpin = new QDoubleSpinBox();
+    outboundLossPercentSpin->setRange(0.0, LOSS_MAX);
+    outboundRateRateSpin = new QDoubleSpinBox();
+    outboundRateRateSpin->setRange(0.0, RATE_MAX);
 
     QGridLayout* bsbox = new QGridLayout();
     int bsindex = 0;
     bsbox->addWidget(new QLabel(QObject::tr("Inbound Dealy [ms]")), bsindex, 0);
-    bsbox->addWidget(idelaySpin, bsindex++, 1);
-    bsbox->addWidget(new QLabel(QObject::tr("Inbound Rate [kbit/s]")), bsindex, 0);
-    bsbox->addWidget(irateSpin, bsindex++, 1);
+    bsbox->addWidget(inboundDelayTimeSpin, bsindex++, 1);
     bsbox->addWidget(new QLabel(QObject::tr("Inbound Loss [%]")), bsindex, 0);
-    bsbox->addWidget(ilossSpin, bsindex++, 1);
+    bsbox->addWidget(inboundLossPercentSpin, bsindex++, 1);
+    bsbox->addWidget(new QLabel(QObject::tr("Inbound Rate [kbit/s]")), bsindex, 0);
+    bsbox->addWidget(inboundRateRateSpin, bsindex++, 1);
     bsbox->addWidget(new QLabel(QObject::tr("Outbound Dealy [ms]")), bsindex, 0);
-    bsbox->addWidget(odelaySpin, bsindex++, 1);
-    bsbox->addWidget(new QLabel(QObject::tr("Outbound Rate [kbit/s]")), bsindex, 0);
-    bsbox->addWidget(orateSpin, bsindex++, 1);
+    bsbox->addWidget(outboundDelayTimeSpin, bsindex++, 1);
     bsbox->addWidget(new QLabel(QObject::tr("Outbound Loss [%]")), bsindex, 0);
-    bsbox->addWidget(olossSpin, bsindex++, 1);
+    bsbox->addWidget(outboundLossPercentSpin, bsindex++, 1);
+    bsbox->addWidget(new QLabel(QObject::tr("Outbound Rate [kbit/s]")), bsindex, 0);
+    bsbox->addWidget(outboundRateRateSpin, bsindex++, 1);
 
     bsvbox->addWidget(makeSeparator("Settings"));
     bsvbox->addLayout(sbox);
@@ -239,65 +260,108 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     bswidget->setLayout(bsvbox);
 
     // Advanced Tab
-    ijitterSpin = new QSpinBox();
-    ijitterSpin->setRange(0, DELAY_MAX);
-    iduplicateSpin = new QDoubleSpinBox();
-    iduplicateSpin->setRange(0, 100.00);
-    icorruptSpin = new QDoubleSpinBox();
-    icorruptSpin->setRange(0, 100.0);
-    ireorderingSpin = new QDoubleSpinBox();
-    ireorderingSpin->setRange(0, 100.0);
-    icorrelationSpin = new QDoubleSpinBox();
-    icorrelationSpin->setRange(0, 100.0);
-    igapSpin = new QSpinBox();
-    igapSpin->setRange(0, 100);
-    ibLossSpin = new QSpinBox();
-    ibLossSpin->setRange(0, LOSS_MAX);
-    ojitterSpin = new QSpinBox();
-    ojitterSpin->setRange(0, DELAY_MAX);
-    obLossSpin = new QSpinBox();
-    obLossSpin->setRange(0, LOSS_MAX);
-    oduplicateSpin = new QDoubleSpinBox();
-    oduplicateSpin->setRange(0, 100.0);
-    ocorruptSpin = new QDoubleSpinBox();
-    ocorruptSpin->setRange(0, 100.0);
-    oreorderingSpin = new QDoubleSpinBox();
-    oreorderingSpin->setRange(0, 100.0);
-    ocorrelationSpin = new QDoubleSpinBox();
-    ocorrelationSpin->setRange(0, 100.0);
-    ogapSpin = new QSpinBox();
-    ogapSpin->setRange(0, 100);
+    inboundLimitPacketsSpin = new QDoubleSpinBox();
+    inboundLimitPacketsSpin->setRange(0.0, 10000.0);
+    inboundLimitPacketsSpin->setValue(2000.0);
+    inboundDelayJitterSpin = new QDoubleSpinBox();
+    inboundDelayJitterSpin->setRange(0.0, DELAY_MAX);
+    inboundDelayCorrelationSpin = new QDoubleSpinBox();
+    inboundDelayCorrelationSpin->setRange(0.0, 100.0);
+    inboundDelayDistributionCheck = new QCheckBox();
+    inboundDelayDistributionCheck->setChecked(false);
+    inboundDelayDistributionCombo = new QComboBox();
+    inboundDelayDistributionCombo->setCurrentIndex(0);
+    inboundLossRandomCheck = new QCheckBox();
+    inboundLossRandomCheck->setChecked(false);
+    inboundLossCorrelationSpin = new QDoubleSpinBox();
+    inboundLossCorrelationSpin->setRange(0.0, LOSS_MAX);
+    inboundCorruptPercentSpin = new QDoubleSpinBox();
+    inboundCorruptPercentSpin->setRange(0.0, 100.0);
+    inboundCorruptCorrelationSpin = new QDoubleSpinBox();
+    inboundCorruptCorrelationSpin->setRange(0.0, 100.0);
+    inboundDuplicationPercentSpin = new QDoubleSpinBox();
+    inboundDuplicationPercentSpin->setRange(0.0, 100.00);
+    inboundDuplicationCorrelationSpin = new QDoubleSpinBox();
+    inboundDuplicationCorrelationSpin->setRange(0.0, 100.00);
+    inboundReorderingPercentSpin = new QDoubleSpinBox();
+    inboundReorderingPercentSpin->setRange(0.0, 100.0);
+    inboundReorderingCorrelationSpin = new QDoubleSpinBox();
+    inboundReorderingCorrelationSpin->setRange(0.0, 100.0);
+    inboundReorderingDistanceSpin = new QDoubleSpinBox();
+    inboundReorderingDistanceSpin->setRange(0.0, 100);
+    inboundRatePacketOverheadSpin = new QDoubleSpinBox();
+    inboundRatePacketOverheadSpin->setRange(0.0, 100.0);
+    inboundRateCellSizeSpin = new QDoubleSpinBox();
+    inboundRateCellSizeSpin->setRange(0.0, 100.0);
+    inboundRateCellOverheadSpin = new QDoubleSpinBox();
+    inboundRateCellOverheadSpin->setRange(0.0, 100.0);
+
+    outboundLimitPacketsSpin = new QDoubleSpinBox();
+    outboundLimitPacketsSpin->setRange(0.0, 10000.0);
+    outboundLimitPacketsSpin->setValue(2000.0);
+    outboundDelayJitterSpin = new QDoubleSpinBox();
+    outboundDelayJitterSpin->setRange(0.0, DELAY_MAX);
+    outboundDelayCorrelationSpin = new QDoubleSpinBox();
+    outboundDelayCorrelationSpin->setRange(0.0, 100.0);
+    outboundDelayDistributionCheck = new QCheckBox();
+    outboundDelayDistributionCheck->setChecked(false);
+    outboundDelayDistributionCombo = new QComboBox();
+    outboundDelayDistributionCombo->setCurrentIndex(0);
+    outboundLossRandomCheck = new QCheckBox();
+    outboundLossRandomCheck->setChecked(false);
+    outboundLossCorrelationSpin = new QDoubleSpinBox();
+    outboundLossCorrelationSpin->setRange(0.0, LOSS_MAX);
+    outboundCorruptPercentSpin = new QDoubleSpinBox();
+    outboundCorruptPercentSpin->setRange(0.0, 100.0);
+    outboundCorruptCorrelationSpin = new QDoubleSpinBox();
+    outboundCorruptCorrelationSpin->setRange(0.0, 100.0);
+    outboundDuplicationPercentSpin = new QDoubleSpinBox();
+    outboundDuplicationPercentSpin->setRange(0.0, 100.00);
+    outboundDuplicationCorrelationSpin = new QDoubleSpinBox();
+    outboundDuplicationCorrelationSpin->setRange(0.0, 100.00);
+    outboundReorderingPercentSpin = new QDoubleSpinBox();
+    outboundReorderingPercentSpin->setRange(0.0, 100.0);
+    outboundReorderingCorrelationSpin = new QDoubleSpinBox();
+    outboundReorderingCorrelationSpin->setRange(0.0, 100.0);
+    outboundReorderingDistanceSpin = new QDoubleSpinBox();
+    outboundReorderingDistanceSpin->setRange(0.0, 100);
+    outboundRatePacketOverheadSpin = new QDoubleSpinBox();
+    outboundRatePacketOverheadSpin->setRange(0.0, 100.0);
+    outboundRateCellSizeSpin = new QDoubleSpinBox();
+    outboundRateCellSizeSpin->setRange(0.0, 100.0);
+    outboundRateCellOverheadSpin = new QDoubleSpinBox();
+    outboundRateCellOverheadSpin->setRange(0.0, 100.0);
 
     QGridLayout* adbox = new QGridLayout();
     int adindex = 0;
     adbox->addWidget(new QLabel(QObject::tr("Inbound Jitter [ms]")), adindex, 0);
-    adbox->addWidget(ijitterSpin, adindex++, 1);
+    adbox->addWidget(inboundDelayJitterSpin, adindex++, 1);
     adbox->addWidget(new QLabel(QObject::tr("Inbound Duplication [%]")), adindex, 0);
-    adbox->addWidget(iduplicateSpin, adindex++, 1);
+    adbox->addWidget(inboundDuplicationPercentSpin, adindex++, 1);
     adbox->addWidget(new QLabel(QObject::tr("Inbound Corruption [%]")), adindex, 0);
-    adbox->addWidget(icorruptSpin, adindex++, 1);
+    adbox->addWidget(inboundCorruptPercentSpin, adindex++, 1);
     adbox->addWidget(new QLabel(QObject::tr("Inbound Re-ordering [%]")), adindex, 0);
-    adbox->addWidget(ireorderingSpin, adindex++, 1);
+    adbox->addWidget(inboundReorderingPercentSpin, adindex++, 1);
     adbox->addWidget(new QLabel(QObject::tr("Inbound Correlation [%]")), adindex, 0);
-    adbox->addWidget(icorrelationSpin, adindex++, 1);
+    adbox->addWidget(inboundReorderingCorrelationSpin, adindex++, 1);
     adbox->addWidget(new QLabel(QObject::tr("Inbound Gap [distance]")), adindex, 0);
-    adbox->addWidget(igapSpin, adindex++, 1);
+    adbox->addWidget(inboundReorderingDistanceSpin, adindex++, 1);
     adbox->addWidget(new QLabel(QObject::tr("Inbound Burst Loss [%]")), adindex, 0);
-    adbox->addWidget(ibLossSpin, adindex++, 1);
+    adbox->addWidget(inboundLossCorrelationSpin, adindex++, 1);
     adbox->addWidget(new QLabel(QObject::tr("Outbound Jitter [ms]")), adindex, 0);
-    adbox->addWidget(ojitterSpin, adindex++, 1);
+    adbox->addWidget(outboundDelayJitterSpin, adindex++, 1);
     adbox->addWidget(new QLabel(QObject::tr("Outbound Duplication [%]")), adindex, 0);
-    adbox->addWidget(oduplicateSpin, adindex++, 1);
+    adbox->addWidget(outboundDuplicationPercentSpin, adindex++, 1);
     adbox->addWidget(new QLabel(QObject::tr("Outbound Corruption [%]")), adindex, 0);
-    adbox->addWidget(ocorruptSpin, adindex++, 1);
+    adbox->addWidget(outboundCorruptPercentSpin, adindex++, 1);
     adbox->addWidget(new QLabel(QObject::tr("Outbound Re-ordering [%]")), adindex, 0);
-    adbox->addWidget(oreorderingSpin, adindex++, 1);
+    adbox->addWidget(outboundReorderingPercentSpin, adindex++, 1);
     adbox->addWidget(new QLabel(QObject::tr("Outbound Correlation [%]")), adindex, 0);
-    adbox->addWidget(ocorrelationSpin, adindex++, 1);
+    adbox->addWidget(outboundReorderingCorrelationSpin, adindex++, 1);
     adbox->addWidget(new QLabel(QObject::tr("Outbound  Gap [distance]")), adindex, 0);
-    adbox->addWidget(ogapSpin, adindex++, 1);
+    adbox->addWidget(outboundReorderingDistanceSpin, adindex++, 1);
     adbox->addWidget(new QLabel(QObject::tr("Outbound Burst Loss [%]")), adindex, 0);
-    adbox->addWidget(obLossSpin, adindex++, 1);
+    adbox->addWidget(outboundLossCorrelationSpin, adindex++, 1);
 
     QWidget* adwidget = new QWidget();
     QVBoxLayout* advbox = new QVBoxLayout();
@@ -376,27 +440,48 @@ void MainWindow::onClearButtonClicked()
     impl->ifbCombo->setCurrentIndex(0);
     impl->srcLine->setText("0.0.0.0/0");
     impl->dstLine->setText("0.0.0.0/0");
-    impl->idelaySpin->setValue(0);
-    impl->irateSpin->setValue(0);
-    impl->ilossSpin->setValue(0.0);
-    impl->odelaySpin->setValue(0);
-    impl->orateSpin->setValue(0);
-    impl->olossSpin->setValue(0.0);
 
-    impl->ijitterSpin->setValue(0);
-    impl->iduplicateSpin->setValue(0.0);
-    impl->icorruptSpin->setValue(0.0);
-    impl->ireorderingSpin->setValue(0.0);
-    impl->icorrelationSpin->setValue(0.0);
-    impl->igapSpin->setValue(0);
-    impl->ibLossSpin->setValue(0);
-    impl->ojitterSpin->setValue(0);
-    impl->oduplicateSpin->setValue(0.0);
-    impl->ocorruptSpin->setValue(0.0);
-    impl->oreorderingSpin->setValue(0.0);
-    impl->ocorrelationSpin->setValue(0.0);
-    impl->ogapSpin->setValue(0);
-    impl->obLossSpin->setValue(0);
+    impl->inboundLimitPacketsSpin->setValue(0.0);
+    impl->inboundDelayTimeSpin->setValue(0.0);
+    impl->inboundDelayJitterSpin->setValue(0.0);
+    impl->inboundDelayCorrelationSpin->setValue(0.0);
+    impl->inboundDelayDistributionCheck->setChecked(false);
+    impl->inboundDelayDistributionCombo->setCurrentIndex(0);
+    impl->inboundLossRandomCheck->setChecked(false);
+    impl->inboundLossPercentSpin->setValue(0.0);
+    impl->inboundLossCorrelationSpin->setValue(0.0);
+    impl->inboundCorruptPercentSpin->setValue(0.0);
+    impl->inboundCorruptCorrelationSpin->setValue(0.0);
+    impl->inboundDuplicationPercentSpin->setValue(0.0);
+    impl->inboundDuplicationCorrelationSpin->setValue(0.0);
+    impl->inboundReorderingPercentSpin->setValue(0.0);
+    impl->inboundReorderingCorrelationSpin->setValue(0.0);
+    impl->inboundReorderingDistanceSpin->setValue(0.0);
+    impl->inboundRateRateSpin->setValue(0.0);
+    impl->inboundRatePacketOverheadSpin->setValue(0.0);
+    impl->inboundRateCellSizeSpin->setValue(0.0);
+    impl->inboundRateCellOverheadSpin->setValue(0.0);
+
+    impl->outboundLimitPacketsSpin->setValue(0.0);
+    impl->outboundDelayTimeSpin->setValue(0.0);
+    impl->outboundDelayJitterSpin->setValue(0.0);
+    impl->outboundDelayCorrelationSpin->setValue(0.0);
+    impl->outboundDelayDistributionCheck->setChecked(false);
+    impl->outboundDelayDistributionCombo->setCurrentIndex(0);
+    impl->outboundLossRandomCheck->setChecked(false);
+    impl->outboundLossPercentSpin->setValue(0.0);
+    impl->outboundLossCorrelationSpin->setValue(0.0);
+    impl->outboundCorruptPercentSpin->setValue(0.0);
+    impl->outboundCorruptCorrelationSpin->setValue(0.0);
+    impl->outboundDuplicationPercentSpin->setValue(0.0);
+    impl->outboundDuplicationCorrelationSpin->setValue(0.0);
+    impl->outboundReorderingPercentSpin->setValue(0.0);
+    impl->outboundReorderingCorrelationSpin->setValue(0.0);
+    impl->outboundReorderingDistanceSpin->setValue(0.0);
+    impl->outboundRateRateSpin->setValue(0.0);
+    impl->outboundRatePacketOverheadSpin->setValue(0.0);
+    impl->outboundRateCellSizeSpin->setValue(0.0);
+    impl->outboundRateCellOverheadSpin->setValue(0.0);
 }
 
 
@@ -474,90 +559,180 @@ void MainWindowImpl::onTCExecute()
         return;
     }
 
-    string head[] = { " delay ", " rate ", " loss ", " duplicate ", " corrupt " };
-    string unit[] = { "ms", "kbps", "%", "%", "%" };
-    vector<double> value;
-    value.push_back(idelaySpin->value());
-    value.push_back(irateSpin->value());
-    value.push_back(ilossSpin->value());
-    value.push_back(iduplicateSpin->value());
-    value.push_back(icorruptSpin->value());
-    value.push_back(odelaySpin->value());
-    value.push_back(orateSpin->value());
-    value.push_back(olossSpin->value());
-    value.push_back(oduplicateSpin->value());
-    value.push_back(ocorruptSpin->value());
+    double inboundLimitPackets = inboundLimitPacketsSpin->value();
+    double inboundDelayTime = inboundDelayTimeSpin->value();
+    double inboundDelayJitter = inboundDelayJitterSpin->value();
+    double inboundDelayCorrelation = inboundDelayCorrelationSpin->value();
+    bool isCheckedInboundDelayDistribution = inboundDelayDistributionCheck->isChecked();
+    string inboundDelayDistribution = inboundDelayDistributionCombo->currentText().toStdString();
+    bool isCheckedInboundLossRandom = inboundLossRandomCheck->isChecked();
+    double inboundLossPercent = inboundLossPercentSpin->value();
+    double inboundLossCorrelation = inboundLossCorrelationSpin->value();
+    double inboundCorruptPercent = inboundCorruptPercentSpin->value();
+    double inboundCorruptCorrelation = inboundCorruptCorrelationSpin->value();
+    double inboundDuplicationPercent = inboundDuplicationPercentSpin->value();
+    double inboundDuplicationCorrelation = inboundDuplicationCorrelationSpin->value();
+    double inboundReorderingPercent = inboundReorderingPercentSpin->value();
+    double inboundReorderingCorrelation = inboundReorderingCorrelationSpin->value();
+    double inboundReorderingDistance = inboundReorderingDistanceSpin->value();
+    double inboundRateRate = inboundRateRateSpin->value();
+    double inboundRatePacketOverhead = inboundRatePacketOverheadSpin->value();
+    double inboundRateCellSize = inboundRateCellSizeSpin->value();
+    double inboundRateCellOverhead = inboundRateCellOverheadSpin->value();
 
-    string effects[10];
-    for(int i = 0; i < 10; i++) {
-        if(value[i] > 0.0) {
-            int index = i % 5;
-            effects[i] = (boost::format("%s%3.2lf%s")
-                          % head[index].c_str() % value[i] % unit[index].c_str()
-                        ).str();
-            if(i == 0) {
-                double idelay = idelaySpin->value();
-                double ijitter = ijitterSpin->value();
-                double ireordering = ireorderingSpin->value();
-                double icorrelation = icorrelationSpin->value();
-                int igap = igapSpin->value();
-                if((idelay > 0.0) && (ijitter > 0.0) && (ijitter <= idelay)) {
-                    effects[i] += (boost::format(" %dms")
-                                   % ijitter
-                                ).str();
-                }
-                if((idelay > 0.0) && (ireordering > 0.0) && (icorrelation > 0.0)) {
-                    effects[i] += (boost::format(" reorder %d%s %d%s")
-                                   % ireordering  % ("%") % icorrelation % ("%")
-                                   ).str();
-                }
-                if((idelay > 0.0) && (ireordering > 0.0) && (icorrelation > 0.0) && (igap > 0)) {
-                    effects[i] += (boost::format(" gap %d")
-                                   % igap
-                                ).str();
-                }
-            } else if(i == 2) {
-                double iloss = ilossSpin->value();
-                double ibloss = ibLossSpin->value();
+    double outboundLimitPackets = outboundLimitPacketsSpin->value();
+    double outboundDelayTime = outboundDelayTimeSpin->value();
+    double outboundDelayJitter = outboundDelayJitterSpin->value();
+    double outboundDelayCorrelation = outboundDelayCorrelationSpin->value();
+    bool isCheckedOutboundDelayDistribution = outboundDelayDistributionCheck->isChecked();
+    string outboundDelayDistribution = outboundDelayDistributionCombo->currentText().toStdString();
+    bool isCheckedOutboundLossRandom = outboundLossRandomCheck->isChecked();
+    double outboundLossPercent = outboundLossPercentSpin->value();
+    double outboundLossCorrelation = outboundLossCorrelationSpin->value();
+    double outboundCorruptPercent = outboundCorruptPercentSpin->value();
+    double outboundCorruptCorrelation = outboundCorruptCorrelationSpin->value();
+    double outboundDuplicationPercent = outboundDuplicationPercentSpin->value();
+    double outboundDuplicationCorrelation = outboundDuplicationCorrelationSpin->value();
+    double outboundReorderingPercent = outboundReorderingPercentSpin->value();
+    double outboundReorderingCorrelation = outboundReorderingCorrelationSpin->value();
+    double outboundReorderingDistance = outboundReorderingDistanceSpin->value();
+    double outboundRateRate = outboundRateRateSpin->value();
+    double outboundRatePacketOverhead = outboundRatePacketOverheadSpin->value();
+    double outboundRateCellSize = outboundRateCellSizeSpin->value();
+    double outboundRateCellOverhead = outboundRateCellOverheadSpin->value();
 
-                if((iloss > 0.0) && (ibloss > 0.0)) {
-                    effects[i] += (boost::format(" %d%s")
-                                   % ibloss % ("%")
-                                ).str();
-                }
+    string inboundEffects;
+    string outboundEffects;
 
-            } else if(i == 5) {
-                double odelay = odelaySpin->value();
-                double ojitter = ojitterSpin->value();
-                double oreordering = oreorderingSpin->value();
-                double ocorrelation = ocorrelationSpin->value();
-                int ogap = ogapSpin->value();
-                if((odelay > 0.0) && (ojitter > 0.0) && (ojitter <= odelay)) {
-                    effects[i] += (boost::format(" %dms")
-                                   % ojitter
-                                ).str();                }
-                if((odelay > 0.0) && (oreordering > 0.0) && (ocorrelation > 0.0)) {
-                    effects[i] += (boost::format(" reorder %d%s %d%s")
-                                   % oreordering  % ("%") % ocorrelation % ("%")
-                                   ).str();
-                }
-                if((odelay > 0.0) && (oreordering > 0.0) && (ocorrelation > 0.0) && (ogap > 0)) {
-                    effects[i] += (boost::format(" gap %d")
-                                   % ogap
-                                ).str();
-                }
-            } else if(i == 7) {
-                double oloss = olossSpin->value();
-                double obloss = obLossSpin->value();
+    // Inbound Commads
+    if(inboundLimitPackets > 0.0) {
+        inboundEffects += "limit " + to_string((int)inboundLimitPackets);
+    }
 
-                if((oloss > 0.0) && (obloss > 0.0)) {
-                    effects[i] += (boost::format(" %d%s")
-                                   % obloss % ("%")
-                                ).str();
+    if(inboundDelayTime > 0.0) {
+        inboundEffects += " delay " + to_string((int)inboundDelayTime) + "ms";
+        if(inboundDelayJitter > 0.0) {
+            inboundEffects += " " + to_string((int)inboundDelayJitter) + "ms";
+            if(inboundDelayCorrelation > 0.0) {
+                inboundEffects += " " + to_string((int)inboundDelayCorrelation) + "%";
+            }
+        }
+        if(isCheckedInboundDelayDistribution) {
+            inboundEffects += " distribution " + inboundDelayDistribution;
+        }
+    }
+
+    if(inboundLossPercent > 0.0) {
+        inboundEffects += " loss";
+        if(isCheckedInboundLossRandom) {
+            inboundEffects += " random";
+        }
+        inboundEffects += " " + to_string((int)inboundLossPercent) + "%";
+        if(inboundLossCorrelation > 0.0) {
+            inboundEffects += " " + to_string((int)inboundLossCorrelation) +"%";
+        }
+    }
+
+    if(inboundCorruptPercent > 0.0) {
+        inboundEffects += " corrupt " + to_string((int)inboundCorruptPercent) + "%";
+        if(inboundCorruptCorrelation > 0.0) {
+            inboundEffects += " " + to_string((int)inboundCorruptCorrelation) +"%";
+        }
+    }
+
+    if(inboundDuplicationPercent > 0.0) {
+        inboundEffects += " duplicate " + to_string((int)inboundDuplicationPercent) + "%";
+        if(inboundDuplicationCorrelation > 0.0) {
+            inboundEffects += " " + to_string((int)inboundDuplicationCorrelation) +"%";
+        }
+    }
+
+    if(inboundReorderingPercent > 0.0) {
+        inboundEffects += " reorder " + to_string((int)inboundReorderingPercent) + "%";
+        if(inboundReorderingCorrelation > 0.0) {
+            inboundEffects += " " + to_string((int)inboundReorderingCorrelation) +"%";
+        }
+        if(inboundReorderingDistance > 0.0) {
+            inboundEffects += " gap " + to_string((int)inboundReorderingDistance);
+        }
+    }
+
+    if(inboundRateRate > 0.0) {
+        inboundEffects += " rate " + to_string((int)inboundRateRate) + "kbps";
+        if(inboundRatePacketOverhead > 0.0) {
+            inboundEffects += " " + to_string((int)inboundRatePacketOverhead);
+            if(inboundRateCellSize > 0.0) {
+                inboundEffects += " " + to_string((int)inboundRateCellSize);
+                if(inboundRateCellOverhead > 0.0) {
+                    inboundEffects += " " + to_string((int)inboundRateCellOverhead);
                 }
             }
-        } else {
-            effects[i].clear();
+        }
+    }
+
+    // Outbound Commands
+    if(outboundLimitPackets > 0.0) {
+        outboundEffects += "limit " + to_string((int)outboundLimitPackets);
+    }
+
+    if(outboundDelayTime > 0.0) {
+        outboundEffects += " delay " + to_string((int)outboundDelayTime) + "ms";
+        if(outboundDelayJitter > 0.0) {
+            outboundEffects += " " + to_string((int)outboundDelayJitter) + "ms";
+            if(outboundDelayCorrelation > 0.0) {
+                outboundEffects += " " + to_string((int)outboundDelayCorrelation) + "%";
+            }
+        }
+        if(isCheckedOutboundDelayDistribution) {
+            outboundEffects += " distribution " + outboundDelayDistribution;
+        }
+    }
+
+    if(outboundLossPercent > 0.0) {
+        outboundEffects += " loss";
+        if(isCheckedOutboundLossRandom) {
+            outboundEffects += " random";
+        }
+        outboundEffects += " " + to_string((int)outboundLossPercent) + "%";
+        if(outboundLossCorrelation > 0.0) {
+            outboundEffects += " " + to_string((int)outboundLossCorrelation) +"%";
+        }
+    }
+
+    if(outboundCorruptPercent > 0.0) {
+        outboundEffects += " corrupt " + to_string((int)outboundCorruptPercent) + "%";
+        if(outboundCorruptCorrelation > 0.0) {
+            outboundEffects += " " + to_string((int)outboundCorruptCorrelation) +"%";
+        }
+    }
+
+    if(outboundDuplicationPercent > 0.0) {
+        outboundEffects += " duplicate " + to_string((int)outboundDuplicationPercent) + "%";
+        if(outboundDuplicationCorrelation > 0.0) {
+            outboundEffects += " " + to_string((int)outboundDuplicationCorrelation) +"%";
+        }
+    }
+
+    if(outboundReorderingPercent > 0.0) {
+        outboundEffects += " reorder " + to_string((int)outboundReorderingPercent) + "%";
+        if(outboundReorderingCorrelation > 0.0) {
+            outboundEffects += " " + to_string((int)outboundReorderingCorrelation) +"%";
+        }
+        if(outboundReorderingDistance > 0.0) {
+            outboundEffects += " gap " + to_string((int)outboundReorderingDistance);
+        }
+    }
+
+    if(outboundRateRate > 0.0) {
+        outboundEffects += " rate " + to_string((int)outboundRateRate) + "kbps";
+        if(outboundRatePacketOverhead > 0.0) {
+            outboundEffects += " " + to_string((int)outboundRatePacketOverhead);
+            if(outboundRateCellSize > 0.0) {
+                outboundEffects += " " + to_string((int)outboundRateCellSize);
+                if(outboundRateCellOverhead > 0.0) {
+                    outboundEffects += " " + to_string((int)outboundRateCellOverhead);
+                }
+            }
         }
     }
 
@@ -575,15 +750,15 @@ void MainWindowImpl::onTCExecute()
 
     if((!srcipName.empty()) && (!dstipName.empty())) {
         dstMessage = (
-                    boost::format("sudo tc qdisc add dev %s parent 1:2 handle 20: netem limit 2000%s%s%s%s%s;\n"
+                    boost::format("sudo tc qdisc add dev %s parent 1:2 handle 20: netem %s;\n"
                                   "sudo tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip src %s match ip dst %s flowid 1:2;\n")
-                    % ifbName.c_str() % effects[0].c_str() % effects[1].c_str() % effects[2].c_str() % effects[3].c_str() % effects[4].c_str()
+                    % ifbName.c_str() % inboundEffects.c_str()
                     % ifbName.c_str() % dstipName.c_str() % srcipName.c_str()
                     ).str();
         srcMessage = (
-                    boost::format("sudo tc qdisc add dev %s parent 1:2 handle 20: netem limit 2000%s%s%s%s%s;\n"
+                    boost::format("sudo tc qdisc add dev %s parent 1:2 handle 20: netem %s;\n"
                                   "sudo tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip src %s match ip dst %s flowid 1:2;\n")
-                    % ifcName.c_str() % effects[5].c_str() % effects[6].c_str() % effects[7].c_str() % effects[8].c_str() % effects[9].c_str()
+                    % ifcName.c_str() % outboundEffects.c_str()
                     % ifcName.c_str() % srcipName.c_str() % dstipName.c_str()
                     ).str();
     }
@@ -623,7 +798,7 @@ void MainWindowImpl::onCommandExecute(const string& message)
     if(pid == -1) {
         exit(EXIT_FAILURE);
     } else if(pid == 0) {
-        int ret = system(message.c_str());
+//        int ret = system(message.c_str());
         if(showCommands) {
             cout << message << endl;
         }
