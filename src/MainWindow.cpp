@@ -546,7 +546,7 @@ void MainWindow::onClearButtonClicked()
     impl->srcLine->setText("0.0.0.0/0");
     impl->dstLine->setText("0.0.0.0/0");
 
-    impl->inboundLimitPacketsSpin->setValue(0.0);
+    impl->inboundLimitPacketsSpin->setValue(2000.0);
     impl->inboundDelayTimeSpin->setValue(0.0);
     impl->inboundDelayJitterSpin->setValue(0.0);
     impl->inboundDelayCorrelationSpin->setValue(0.0);
@@ -570,7 +570,7 @@ void MainWindow::onClearButtonClicked()
     impl->inboundSlotMaxDelaySpin->setValue(0.0);
     impl->inboundSlotDistributionCheck->setChecked(false);
 
-    impl->outboundLimitPacketsSpin->setValue(0.0);
+    impl->outboundLimitPacketsSpin->setValue(2000.0);
     impl->outboundDelayTimeSpin->setValue(0.0);
     impl->outboundDelayJitterSpin->setValue(0.0);
     impl->outboundDelayCorrelationSpin->setValue(0.0);
