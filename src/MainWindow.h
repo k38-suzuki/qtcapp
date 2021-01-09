@@ -26,6 +26,7 @@ public Q_SLOTS:
     void onClearButtonClicked();
     void onApplyButtonToggled(bool on);
     void onShowActionTriggered(bool on);
+    void onDebugActionTriggered(bool on);
     void onCurrentIFBChanged(QString ifbName);
 };
 

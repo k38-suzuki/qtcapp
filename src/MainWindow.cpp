@@ -114,6 +114,10 @@ public:
     QDoubleSpinBox* inboundRatePacketOverheadSpin;
     QDoubleSpinBox* inboundRateCellSizeSpin;
     QDoubleSpinBox* inboundRateCellOverheadSpin;
+    QDoubleSpinBox* inboundSlotMinDelaySpin;
+    QDoubleSpinBox* inboundSlotMaxDelaySpin;
+    QCheckBox* inboundSlotDistributionCheck;
+    QComboBox* inboundSlotDistributionCombo;
 
     QDoubleSpinBox* outboundLimitPacketsSpin;
     QDoubleSpinBox* outboundDelayTimeSpin;
@@ -135,9 +139,15 @@ public:
     QDoubleSpinBox* outboundRatePacketOverheadSpin;
     QDoubleSpinBox* outboundRateCellSizeSpin;
     QDoubleSpinBox* outboundRateCellOverheadSpin;
+    QDoubleSpinBox* outboundSlotMinDelaySpin;
+    QDoubleSpinBox* outboundSlotMaxDelaySpin;
+    QCheckBox* outboundSlotDistributionCheck;
+    QComboBox* outboundSlotDistributionCombo;
 
     QAction* showAct;
     bool showCommands;
+    QAction* debugAct;
+    bool debugMode;
 
     QPushButton* clrButton;
     QPushButton* aplButton;
@@ -171,11 +181,17 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     QMenu* toolMenu = self->menuBar()->addMenu(QObject::tr("&Tool"));
     QMenu* helpMenu = self->menuBar()->addMenu(QObject::tr("&Help"));
 
-    QAction* showAct = new QAction(QObject::tr("Show commands"));
+    showAct = new QAction(QObject::tr("Show commands"));
     showAct->setCheckable(true);
     showAct->setChecked(false);
     editMenu->addAction(showAct);
     showCommands = false;
+
+    debugAct = new QAction(QObject::tr("Debug Mode"));
+    debugAct->setCheckable(true);
+    debugAct->setChecked(false);
+    toolMenu->addAction(debugAct);
+    debugMode = false;
 
     QAction* quitAct = new QAction(QObject::tr("Quit"));
     fileMenu->addAction(quitAct);
@@ -253,8 +269,8 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     bsbox->addWidget(outboundRateRateSpin, bsindex++, 3);
 
     QHBoxLayout* bshbox = new QHBoxLayout();
-    bshbox->addWidget(makeSeparator("Inbound Parameters"));
-    bshbox->addWidget(makeSeparator("Outbound Parameters"));
+    bshbox->addWidget(makeSeparator(QObject::tr("Inbound Parameters")));
+    bshbox->addWidget(makeSeparator(QObject::tr("Outbound Parameters")));
 
     bsvbox->addWidget(makeSeparator("Settings"));
     bsvbox->addLayout(sbox);
@@ -272,7 +288,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     inboundDelayCorrelationSpin = new QDoubleSpinBox();
     inboundDelayCorrelationSpin->setRange(0.0, 100.0);
     inboundDelayDistributionCheck = new QCheckBox();
-    inboundDelayDistributionCheck->setText("Delay Distribution [-]");
+    inboundDelayDistributionCheck->setText(QObject::tr("Delay Distribution [-]"));
     inboundDelayDistributionCheck->setChecked(false);
     inboundDelayDistributionCombo = new QComboBox();
     QStringList distributions = { "uniform", "normal", "pareto", "paretonormal" };
@@ -280,7 +296,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     inboundDelayDistributionCombo->setEnabled(false);
     inboundDelayDistributionCombo->setCurrentIndex(0);
     inboundLossRandomCheck = new QCheckBox();
-    inboundLossRandomCheck->setText("Loss Random [-]");
+    inboundLossRandomCheck->setText(QObject::tr("Loss Random [-]"));
     inboundLossRandomCheck->setChecked(false);
     inboundLossCorrelationSpin = new QDoubleSpinBox();
     inboundLossCorrelationSpin->setRange(0.0, LOSS_MAX);
@@ -304,6 +320,16 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     inboundRateCellSizeSpin->setRange(0.0, 100.0);
     inboundRateCellOverheadSpin = new QDoubleSpinBox();
     inboundRateCellOverheadSpin->setRange(0.0, 100.0);
+    inboundSlotMinDelaySpin = new QDoubleSpinBox();
+    inboundSlotMinDelaySpin->setRange(0.0, DELAY_MAX);
+    inboundSlotMaxDelaySpin = new QDoubleSpinBox();
+    inboundSlotMaxDelaySpin->setRange(0.0, DELAY_MAX);
+    inboundSlotDistributionCheck = new QCheckBox();
+    inboundSlotDistributionCheck->setText(QObject::tr("Slot Distribution [-]"));
+    inboundSlotDistributionCheck->setChecked(false);
+    inboundSlotDistributionCombo = new QComboBox();
+    inboundSlotDistributionCombo->addItems(distributions);
+    inboundSlotDistributionCombo->setEnabled(false);
 
     outboundLimitPacketsSpin = new QDoubleSpinBox();
     outboundLimitPacketsSpin->setRange(0.0, 10000.0);
@@ -313,14 +339,14 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     outboundDelayCorrelationSpin = new QDoubleSpinBox();
     outboundDelayCorrelationSpin->setRange(0.0, 100.0);
     outboundDelayDistributionCheck = new QCheckBox();
-    outboundDelayDistributionCheck->setText("Delay Distribution [-]");
+    outboundDelayDistributionCheck->setText(QObject::tr("Delay Distribution [-]"));
     outboundDelayDistributionCheck->setChecked(false);
     outboundDelayDistributionCombo = new QComboBox();
     outboundDelayDistributionCombo->setEnabled(false);
     outboundDelayDistributionCombo->addItems(distributions);
     outboundDelayDistributionCombo->setCurrentIndex(0);
     outboundLossRandomCheck = new QCheckBox();
-    outboundLossRandomCheck->setText("Loss Random [-]");
+    outboundLossRandomCheck->setText(QObject::tr("Loss Random [-]"));
     outboundLossRandomCheck->setChecked(false);
     outboundLossCorrelationSpin = new QDoubleSpinBox();
     outboundLossCorrelationSpin->setRange(0.0, LOSS_MAX);
@@ -344,6 +370,16 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     outboundRateCellSizeSpin->setRange(0.0, 100.0);
     outboundRateCellOverheadSpin = new QDoubleSpinBox();
     outboundRateCellOverheadSpin->setRange(0.0, 100.0);
+    outboundSlotMinDelaySpin = new QDoubleSpinBox();
+    outboundSlotMinDelaySpin->setRange(0.0, DELAY_MAX);
+    outboundSlotMaxDelaySpin = new QDoubleSpinBox();
+    outboundSlotMaxDelaySpin->setRange(0.0, DELAY_MAX);
+    outboundSlotDistributionCheck = new QCheckBox();
+    outboundSlotDistributionCheck->setText(QObject::tr("Slot Distribution [-]"));
+    outboundSlotDistributionCheck->setChecked(false);
+    outboundSlotDistributionCombo = new QComboBox();
+    outboundSlotDistributionCombo->addItems(distributions);
+    outboundSlotDistributionCombo->setEnabled(false);
 
     QGridLayout* adbox = new QGridLayout();
     int adindex = 0;
@@ -393,28 +429,41 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     adbox->addWidget(inboundReorderingCorrelationSpin, adindex, 1);
     adbox->addWidget(new QLabel(QObject::tr("Reordering Correlation [%]")), adindex, 2);
     adbox->addWidget(outboundReorderingCorrelationSpin, adindex++, 3);
-    adbox->addWidget(new QLabel(QObject::tr("Reordering Gap [distance]")), adindex, 0);
+    adbox->addWidget(new QLabel(QObject::tr("Reordering Distance [packets]")), adindex, 0);
     adbox->addWidget(inboundReorderingDistanceSpin, adindex, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Reordering Gap [distance]")), adindex, 2);
+    adbox->addWidget(new QLabel(QObject::tr("Reordering Distance [packets]")), adindex, 2);
     adbox->addWidget(outboundReorderingDistanceSpin, adindex++, 3);
-    adbox->addWidget(new QLabel(QObject::tr("Rate Packet Overhead [%]")), adindex, 0);
+    adbox->addWidget(new QLabel(QObject::tr("Rate Packet Overhead [byte]")), adindex, 0);
     adbox->addWidget(inboundRatePacketOverheadSpin, adindex, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Rate Packet Overhead [%]")), adindex, 2);
+    adbox->addWidget(new QLabel(QObject::tr("Rate Packet Overhead [byte]")), adindex, 2);
     adbox->addWidget(outboundRatePacketOverheadSpin, adindex++, 3);
-    adbox->addWidget(new QLabel(QObject::tr("Rate Cell Size [%]")), adindex, 0);
+    adbox->addWidget(new QLabel(QObject::tr("Rate Cell Size [byte]")), adindex, 0);
     adbox->addWidget(inboundRateCellSizeSpin, adindex, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Rate Cell Size [%]")), adindex, 2);
+    adbox->addWidget(new QLabel(QObject::tr("Rate Cell Size [byte]")), adindex, 2);
     adbox->addWidget(outboundRateCellSizeSpin, adindex++, 3);
-    adbox->addWidget(new QLabel(QObject::tr("Rate Cell Overhead [%]")), adindex, 0);
+    adbox->addWidget(new QLabel(QObject::tr("Rate Cell Overhead [byte]")), adindex, 0);
     adbox->addWidget(inboundRateCellOverheadSpin, adindex, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Rate Cell Overhead [%]")), adindex, 2);
+    adbox->addWidget(new QLabel(QObject::tr("Rate Cell Overhead [byte]")), adindex, 2);
     adbox->addWidget(outboundRateCellOverheadSpin, adindex++, 3);
+//    adbox->addWidget(new QLabel(QObject::tr("Slot Min Delay [ms]")), adindex, 0);
+//    adbox->addWidget(inboundSlotMinDelaySpin, adindex, 1);
+//    adbox->addWidget(new QLabel(QObject::tr("Slot Min Delay [ms]")), adindex, 2);
+//    adbox->addWidget(outboundSlotMinDelaySpin, adindex++, 3);
+//    adbox->addWidget(new QLabel(QObject::tr("Slot Max Delay [ms]")), adindex, 0);
+//    adbox->addWidget(inboundSlotMaxDelaySpin, adindex, 1);
+//    adbox->addWidget(new QLabel(QObject::tr("Slot Max Delay [ms]")), adindex, 2);
+//    adbox->addWidget(outboundSlotMaxDelaySpin, adindex++, 3);
+//    adbox->addWidget(inboundSlotDistributionCheck, adindex, 0);
+//    adbox->addWidget(inboundSlotDistributionCombo, adindex, 1);
+//    adbox->addWidget(outboundSlotDistributionCheck, adindex, 2);
+//    adbox->addWidget(outboundSlotDistributionCombo, adindex++, 3);
+
 
     QWidget* adwidget = new QWidget();
     QVBoxLayout* advbox = new QVBoxLayout();
     QHBoxLayout* adhbox = new QHBoxLayout();
-    adhbox->addWidget(makeSeparator("Inbound Parameters"));
-    adhbox->addWidget(makeSeparator("Outbound Parameters"));
+    adhbox->addWidget(makeSeparator(QObject::tr("Inbound Parameters")));
+    adhbox->addWidget(makeSeparator(QObject::tr("Outbound Parameters")));
     advbox->addLayout(adhbox);
     advbox->addLayout(adbox);
     advbox->addStretch();
@@ -441,9 +490,13 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 
     QObject::connect(inboundDelayDistributionCheck, SIGNAL(toggled(bool)), inboundDelayDistributionCombo, SLOT(setEnabled(bool)));
     QObject::connect(outboundDelayDistributionCheck, SIGNAL(toggled(bool)), outboundDelayDistributionCombo, SLOT(setEnabled(bool)));
+    QObject::connect(inboundSlotDistributionCheck, SIGNAL(toggled(bool)), inboundSlotDistributionCombo, SLOT(setEnabled(bool)));
+    QObject::connect(outboundSlotDistributionCheck, SIGNAL(toggled(bool)), outboundSlotDistributionCombo, SLOT(setEnabled(bool)));
     QObject::connect(clrButton, SIGNAL(clicked()), self, SLOT(onClearButtonClicked()));
     QObject::connect(aplButton, SIGNAL(toggled(bool)), self, SLOT(onApplyButtonToggled(bool)));
     QObject::connect(showAct, SIGNAL(triggered(bool)), self, SLOT(onShowActionTriggered(bool)));
+    QObject::connect(debugAct, SIGNAL(triggered(bool)), self, SLOT(onDebugActionTriggered(bool)));
+    QObject::connect(debugAct, SIGNAL(triggered(bool)), showAct, SLOT(setChecked(bool)));
     QObject::connect(ifbCombo, SIGNAL(currentTextChanged(QString)), self, SLOT(onCurrentIFBChanged(QString)));
     QObject::connect(quitAct, SIGNAL(triggered()), self, SLOT(close()));
 }
@@ -513,6 +566,9 @@ void MainWindow::onClearButtonClicked()
     impl->inboundRatePacketOverheadSpin->setValue(0.0);
     impl->inboundRateCellSizeSpin->setValue(0.0);
     impl->inboundRateCellOverheadSpin->setValue(0.0);
+    impl->inboundSlotMinDelaySpin->setValue(0.0);
+    impl->inboundSlotMaxDelaySpin->setValue(0.0);
+    impl->inboundSlotDistributionCheck->setChecked(false);
 
     impl->outboundLimitPacketsSpin->setValue(0.0);
     impl->outboundDelayTimeSpin->setValue(0.0);
@@ -534,6 +590,9 @@ void MainWindow::onClearButtonClicked()
     impl->outboundRatePacketOverheadSpin->setValue(0.0);
     impl->outboundRateCellSizeSpin->setValue(0.0);
     impl->outboundRateCellOverheadSpin->setValue(0.0);
+    impl->outboundSlotMinDelaySpin->setValue(0.0);
+    impl->outboundSlotMaxDelaySpin->setValue(0.0);
+    impl->outboundSlotDistributionCheck->setChecked(false);
 }
 
 
@@ -555,6 +614,13 @@ void MainWindow::onApplyButtonToggled(bool on)
 
 void MainWindow::onShowActionTriggered(bool on)
 {
+    impl->showCommands = on;
+}
+
+
+void MainWindow::onDebugActionTriggered(bool on)
+{
+    impl->debugMode = on;
     impl->showCommands = on;
 }
 
@@ -631,6 +697,10 @@ void MainWindowImpl::onTCExecute()
     double inboundRatePacketOverhead = inboundRatePacketOverheadSpin->value();
     double inboundRateCellSize = inboundRateCellSizeSpin->value();
     double inboundRateCellOverhead = inboundRateCellOverheadSpin->value();
+    double inboundSlotMinDelay = inboundSlotMinDelaySpin->value();
+    double inboundSlotMaxDelay = inboundSlotMaxDelaySpin->value();
+    bool isCheckedInboundSlotDistribution = inboundSlotDistributionCheck->isChecked();
+    string inboundSlotDistribution = inboundSlotDistributionCombo->currentText().toStdString();
 
     double outboundLimitPackets = outboundLimitPacketsSpin->value();
     double outboundDelayTime = outboundDelayTimeSpin->value();
@@ -652,11 +722,15 @@ void MainWindowImpl::onTCExecute()
     double outboundRatePacketOverhead = outboundRatePacketOverheadSpin->value();
     double outboundRateCellSize = outboundRateCellSizeSpin->value();
     double outboundRateCellOverhead = outboundRateCellOverheadSpin->value();
+    double outboundSlotMinDelay = inboundSlotMinDelaySpin->value();
+    double outboundSlotMaxDelay = inboundSlotMaxDelaySpin->value();
+    bool isCheckedOutboundSlotDistribution = inboundSlotDistributionCheck->isChecked();
+    string outboundSlotDistribution = inboundSlotDistributionCombo->currentText().toStdString();
 
     string inboundEffects;
     string outboundEffects;
 
-    // Commads
+    // Inbound Commads
     if(inboundLimitPackets > 0.0) {
         inboundEffects += "limit " + to_string((int)inboundLimitPackets);
     }
@@ -722,7 +796,16 @@ void MainWindowImpl::onTCExecute()
         }
     }
 
-    // Commands
+    if(isCheckedInboundSlotDistribution) {
+        inboundEffects += " slot " + inboundSlotDistribution;
+    } else if(inboundSlotMinDelay > 0.0) {
+        inboundEffects += " slot " + to_string((int)inboundSlotMinDelay) + "ms";
+        if(inboundSlotMaxDelay > 0.0) {
+            inboundEffects += " " + to_string((int)inboundSlotMaxDelay) + "ms";
+        }
+    }
+
+    // Outbound Commands
     if(outboundLimitPackets > 0.0) {
         outboundEffects += "limit " + to_string((int)outboundLimitPackets);
     }
@@ -788,6 +871,15 @@ void MainWindowImpl::onTCExecute()
         }
     }
 
+    if(isCheckedOutboundSlotDistribution) {
+        outboundEffects += " slot " + outboundSlotDistribution;
+    } else if(outboundSlotMinDelay > 0.0) {
+        outboundEffects += " slot " + to_string((int)outboundSlotMinDelay) + "ms";
+        if(outboundSlotMaxDelay > 0.0) {
+            outboundEffects += " " + to_string((int)outboundSlotMaxDelay) + "ms";
+        }
+    }
+
     string srcipName = srcLine->text().toStdString();
     string dstipName = dstLine->text().toStdString();
     if(!addressCheck(srcipName)) {
@@ -850,7 +942,9 @@ void MainWindowImpl::onCommandExecute(const string& message)
     if(pid == -1) {
         exit(EXIT_FAILURE);
     } else if(pid == 0) {
-        int ret = system(message.c_str());
+        if(!debugMode) {
+            int ret = system(message.c_str());
+        }
         if(showCommands) {
             cout << message << endl;
         }
