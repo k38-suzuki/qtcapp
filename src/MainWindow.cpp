@@ -908,19 +908,21 @@ void MainWindowImpl::onTCExecute()
                               "sudo tc filter add dev %s parent ffff: protocol ip u32 match u32 0 0 action mirred egress redirect dev %s;\n"
                               "sudo tc qdisc add dev %s root handle 1: "
                               "prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;\n"
-                              "sudo tc qdisc add dev %s parent 1:1 handle 10: netem limit 2000;\n"
+                              "sudo tc qdisc add dev %s parent 1:1 handle 10: netem limit %s;\n"
                               "%s"
                               "sudo tc qdisc add dev %s root handle 1: "
                               "prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;\n"
-                              "sudo tc qdisc add dev %s parent 1:1 handle 10: netem limit 2000;\n"
+                              "sudo tc qdisc add dev %s parent 1:1 handle 10: netem limit %s;\n"
                               "%s")
                 % ifcName.c_str()
                 % ifcName.c_str() % ifbName.c_str()
                 % ifbName.c_str()
                 % ifbName.c_str()
+                % to_string((int)inboundLimitPackets)
                 % dstMessage.c_str()
                 % ifcName.c_str()
                 % ifcName.c_str()
+                % to_string((int)outboundLimitPackets)
                 % srcMessage.c_str()
                 ).str();
 
