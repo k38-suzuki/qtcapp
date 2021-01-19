@@ -6,6 +6,7 @@
 #include "MainWindow.h"
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QFrame>
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -13,11 +14,10 @@
 #include <QLineEdit>
 #include <QMenu>
 #include <QMenuBar>
-#include <QVBoxLayout>
 #include <QPalette>
 #include <QPushButton>
-#include <QDoubleSpinBox>
 #include <QTabWidget>
+#include <QVBoxLayout>
 #include <boost/format.hpp>
 #include <sstream>
 #include <stdlib.h>
@@ -86,7 +86,6 @@ class MainWindowImpl
 {
 public:
     MainWindowImpl(MainWindow* self);
-    ~MainWindowImpl();
     MainWindow* self;
 
     QComboBox* ifcCombo;
@@ -458,7 +457,6 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 //    adbox->addWidget(outboundSlotDistributionCheck, adindex, 2);
 //    adbox->addWidget(outboundSlotDistributionCombo, adindex++, 3);
 
-
     QWidget* adwidget = new QWidget();
     QVBoxLayout* advbox = new QVBoxLayout();
     QHBoxLayout* adhbox = new QHBoxLayout();
@@ -506,12 +504,6 @@ MainWindow::~MainWindow()
 {
     impl->onTCFinalize();
     delete impl;
-}
-
-
-MainWindowImpl::~MainWindowImpl()
-{
-
 }
 
 
