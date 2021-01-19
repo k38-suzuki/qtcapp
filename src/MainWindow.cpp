@@ -928,6 +928,11 @@ void MainWindowImpl::onCommandExecute(const string& message)
     vector<string> commands = split(message, ';');
     for(size_t i = 0; i < commands.size(); ++i) {
         QString command = QString::fromStdString(commands[i]);
-        QProcess::execute(command);
+        if(!debugMode) {
+            QProcess::execute(command);
+        }
+        if(showCommands) {
+            cout << command.toStdString() << endl;
+        }
     }
 }
