@@ -15,6 +15,7 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QPalette>
+#include <QProcess>
 #include <QPushButton>
 #include <QTabWidget>
 #include <QVBoxLayout>
@@ -88,6 +89,8 @@ public:
     MainWindowImpl(MainWindow* self);
     MainWindow* self;
 
+    QProcess process;
+
     QComboBox* ifcCombo;
     QComboBox* ifbCombo;
     QLineEdit* srcLine;
@@ -158,6 +161,7 @@ public:
     void onTCFinalize();
     void onTCExecute();
     void onCommandExecute(const string& message);
+    bool onProcessKilled();
 };
 
 
@@ -502,6 +506,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 
 MainWindow::~MainWindow()
 {
+    impl->onProcessKilled();
     impl->onTCFinalize();
     delete impl;
 }
@@ -898,20 +903,14 @@ void MainWindowImpl::onTCExecute()
                     % ifcName.c_str() % srcipName.c_str() % dstipName.c_str()
                     ).str();
     }
-    else {
-        dstMessage.clear();
-        srcMessage.clear();
-    }
 
     string message = (
                 boost::format("sudo tc qdisc add dev %s ingress handle ffff:;\n"
                               "sudo tc filter add dev %s parent ffff: protocol ip u32 match u32 0 0 action mirred egress redirect dev %s;\n"
-                              "sudo tc qdisc add dev %s root handle 1: "
-                              "prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;\n"
+                              "sudo tc qdisc add dev %s root handle 1: prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;\n"
                               "sudo tc qdisc add dev %s parent 1:1 handle 10: netem limit %s;\n"
                               "%s"
-                              "sudo tc qdisc add dev %s root handle 1: "
-                              "prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;\n"
+                              "sudo tc qdisc add dev %s root handle 1: prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;\n"
                               "sudo tc qdisc add dev %s parent 1:1 handle 10: netem limit %s;\n"
                               "%s")
                 % ifcName.c_str()
@@ -932,6 +931,10 @@ void MainWindowImpl::onTCExecute()
 
 void MainWindowImpl::onCommandExecute(const string& message)
 {
+    onProcessKilled();
+    process.start("");
+    if(process.waitForStarted()) {}
+
     pid_t pid = fork();
     if(pid == -1) {
         exit(EXIT_FAILURE);
@@ -944,4 +947,14 @@ void MainWindowImpl::onCommandExecute(const string& message)
         }
         exit(EXIT_SUCCESS);
     }
+}
+
+
+bool MainWindowImpl::onProcessKilled()
+{
+    if(process.state() != QProcess::NotRunning){
+        process.kill();
+        return process.waitForFinished(100);
+    }
+    return false;
 }
