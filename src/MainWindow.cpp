@@ -625,9 +625,9 @@ void MainWindow::onCurrentIFBChanged(QString ifbName)
 void MainWindowImpl::onTCInitialize()
 {
     string ifbName = ifbCombo->currentText().toStdString();
-    string message = (boost::format("sudo modprobe ifb;\n"
-                                    "sudo modprobe act_mirred;\n"
-                                    "sudo ip link set dev %s up;\n")
+    string message = (boost::format("sudo modprobe ifb;"
+                                    "sudo modprobe act_mirred;"
+                                    "sudo ip link set dev %s up;")
                 % ifbName.c_str()).str();
     onCommandExecute(message);
 }
@@ -637,9 +637,9 @@ void MainWindowImpl::onTCClear()
 {
     string ifcName = ifcCombo->currentText().toStdString();
     string ifbName = ifbCombo->currentText().toStdString();
-    string message = (boost::format("sudo tc qdisc del dev %s ingress;\n"
-                                    "sudo tc qdisc del dev %s root;\n"
-                                    "sudo tc qdisc del dev %s root;\n")
+    string message = (boost::format("sudo tc qdisc del dev %s ingress;"
+                                    "sudo tc qdisc del dev %s root;"
+                                    "sudo tc qdisc del dev %s root;")
                 % ifcName.c_str()
                 % ifbName.c_str()
                 % ifcName.c_str()
@@ -651,8 +651,8 @@ void MainWindowImpl::onTCClear()
 void MainWindowImpl::onTCFinalize()
 {
     string ifbName = ifbCombo->currentText().toStdString();
-    string message = (boost::format("sudo ip link set dev %s down;\n"
-                                    "sudo rmmod ifb;\n")
+    string message = (boost::format("sudo ip link set dev %s down;"
+                                    "sudo rmmod ifb;")
                 % ifbName.c_str()
                 ).str();
     onCommandExecute(message);
@@ -885,27 +885,27 @@ void MainWindowImpl::onTCExecute()
 
     if((!srcipName.empty()) && (!dstipName.empty())) {
         dstMessage = (
-                    boost::format("sudo tc qdisc add dev %s parent 1:2 handle 20: netem %s;\n"
-                                  "sudo tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip src %s match ip dst %s flowid 1:2;\n")
+                    boost::format("sudo tc qdisc add dev %s parent 1:2 handle 20: netem %s;"
+                                  "sudo tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip src %s match ip dst %s flowid 1:2;")
                     % ifbName.c_str() % inboundEffects.c_str()
                     % ifbName.c_str() % dstipName.c_str() % srcipName.c_str()
                     ).str();
         srcMessage = (
-                    boost::format("sudo tc qdisc add dev %s parent 1:2 handle 20: netem %s;\n"
-                                  "sudo tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip src %s match ip dst %s flowid 1:2;\n")
+                    boost::format("sudo tc qdisc add dev %s parent 1:2 handle 20: netem %s;"
+                                  "sudo tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip src %s match ip dst %s flowid 1:2;")
                     % ifcName.c_str() % outboundEffects.c_str()
                     % ifcName.c_str() % srcipName.c_str() % dstipName.c_str()
                     ).str();
     }
 
     string message = (
-                boost::format("sudo tc qdisc add dev %s ingress handle ffff:;\n"
-                              "sudo tc filter add dev %s parent ffff: protocol ip u32 match u32 0 0 action mirred egress redirect dev %s;\n"
-                              "sudo tc qdisc add dev %s root handle 1: prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;\n"
-                              "sudo tc qdisc add dev %s parent 1:1 handle 10: netem limit %s;\n"
+                boost::format("sudo tc qdisc add dev %s ingress handle ffff:;"
+                              "sudo tc filter add dev %s parent ffff: protocol ip u32 match u32 0 0 action mirred egress redirect dev %s;"
+                              "sudo tc qdisc add dev %s root handle 1: prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;"
+                              "sudo tc qdisc add dev %s parent 1:1 handle 10: netem limit %s;"
                               "%s"
-                              "sudo tc qdisc add dev %s root handle 1: prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;\n"
-                              "sudo tc qdisc add dev %s parent 1:1 handle 10: netem limit %s;\n"
+                              "sudo tc qdisc add dev %s root handle 1: prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;"
+                              "sudo tc qdisc add dev %s parent 1:1 handle 10: netem limit %s;"
                               "%s")
                 % ifcName.c_str()
                 % ifcName.c_str() % ifbName.c_str()
@@ -928,7 +928,6 @@ void MainWindowImpl::onCommandExecute(const string& message)
     vector<string> commands = split(message, ';');
     for(size_t i = 0; i < commands.size(); ++i) {
         QString command = QString::fromStdString(commands[i]);
-        command.replace("\n", "");
         if(!debugMode) {
             QProcess::execute(command);
         }
