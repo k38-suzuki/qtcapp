@@ -25,8 +25,6 @@
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
 #include <iostream>
 
 #define IFR_MAX 10
@@ -88,8 +86,6 @@ class MainWindowImpl
 public:
     MainWindowImpl(MainWindow* self);
     MainWindow* self;
-
-    QProcess process;
 
     QComboBox* ifcCombo;
     QComboBox* ifbCombo;
@@ -161,7 +157,6 @@ public:
     void onTCFinalize();
     void onTCExecute();
     void onCommandExecute(const string& message);
-    bool onProcessKilled();
 };
 
 
@@ -506,7 +501,6 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 
 MainWindow::~MainWindow()
 {
-    impl->onProcessKilled();
     impl->onTCFinalize();
     delete impl;
 }
@@ -931,30 +925,9 @@ void MainWindowImpl::onTCExecute()
 
 void MainWindowImpl::onCommandExecute(const string& message)
 {
-    onProcessKilled();
-    process.start("");
-    if(process.waitForStarted()) {}
-
-    pid_t pid = fork();
-    if(pid == -1) {
-        exit(EXIT_FAILURE);
-    } else if(pid == 0) {
-        if(!debugMode) {
-            int ret = system(message.c_str());
-        }
-        if(showCommands) {
-            cout << message << endl;
-        }
-        exit(EXIT_SUCCESS);
+    vector<string> commands = split(message, ';');
+    for(size_t i = 0; i < commands.size(); ++i) {
+        QString command = QString::fromStdString(commands[i]);
+        QProcess::execute(command);
     }
-}
-
-
-bool MainWindowImpl::onProcessKilled()
-{
-    if(process.state() != QProcess::NotRunning){
-        process.kill();
-        return process.waitForFinished(100);
-    }
-    return false;
 }
