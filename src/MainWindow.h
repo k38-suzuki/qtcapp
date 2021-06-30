@@ -24,9 +24,10 @@ private:
 
 public Q_SLOTS:
     void onClearButtonClicked();
-    void onApplyButtonToggled(bool on);
-    void onShowActionTriggered(bool on);
-    void onDebugActionTriggered(bool on);
+    void onApplyButtonToggled(const bool& on);
+    void onShowActionTriggered(const bool& on);
+    void onSettingActionTriggered(const bool& on);
+    void onDebugActionTriggered(const bool& on);
     void onCurrentIFBChanged(QString ifbName);
 };
 

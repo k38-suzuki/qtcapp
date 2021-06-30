@@ -6,6 +6,8 @@
 #include "MainWindow.h"
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDialog>
+#include <QDialogButtonBox>
 #include <QDoubleSpinBox>
 #include <QFrame>
 #include <QGridLayout>
@@ -17,7 +19,6 @@
 #include <QPalette>
 #include <QProcess>
 #include <QPushButton>
-#include <QTabWidget>
 #include <QVBoxLayout>
 #include <boost/format.hpp>
 #include <sstream>
@@ -144,6 +145,8 @@ public:
 
     QAction* showAct;
     bool showCommands;
+    QAction* settingAct;
+    QDialog* settingDialog;
     QAction* debugAct;
     bool debugMode;
 
@@ -176,7 +179,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     QMenu* fileMenu = self->menuBar()->addMenu(QObject::tr("&File"));
     QMenu* editMenu = self->menuBar()->addMenu(QObject::tr("&Edit"));
     QMenu* viewMenu = self->menuBar()->addMenu(QObject::tr("&View"));
-    QMenu* toolMenu = self->menuBar()->addMenu(QObject::tr("&Tool"));
+    QMenu* optionMenu = self->menuBar()->addMenu(QObject::tr("&Option"));
     QMenu* helpMenu = self->menuBar()->addMenu(QObject::tr("&Help"));
 
     showAct = new QAction(QObject::tr("Show commands"));
@@ -185,10 +188,12 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     editMenu->addAction(showAct);
     showCommands = false;
 
-    debugAct = new QAction(QObject::tr("Debug Mode"));
+    settingAct = new QAction(QObject::tr("Advanced settings"));
+    optionMenu->addAction(settingAct);
+    debugAct = new QAction(QObject::tr("Debug mode"));
     debugAct->setCheckable(true);
     debugAct->setChecked(false);
-    toolMenu->addAction(debugAct);
+    optionMenu->addAction(debugAct);
     debugMode = false;
 
     QAction* quitAct = new QAction(QObject::tr("Quit"));
@@ -270,7 +275,6 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     bshbox->addWidget(makeSeparator(QObject::tr("Inbound Parameters")));
     bshbox->addWidget(makeSeparator(QObject::tr("Outbound Parameters")));
 
-    bsvbox->addWidget(makeSeparator("Settings"));
     bsvbox->addLayout(sbox);
     bsvbox->addLayout(bshbox);
     bsvbox->addLayout(bsbox);
@@ -456,15 +460,23 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 //    adbox->addWidget(outboundSlotDistributionCheck, adindex, 2);
 //    adbox->addWidget(outboundSlotDistributionCombo, adindex++, 3);
 
-    QWidget* adwidget = new QWidget();
+    settingDialog = new QDialog();
+    settingDialog->setWindowTitle(QObject::tr("Advanced Settings"));
+
+    QPushButton* okButton = new QPushButton(QObject::tr("&Ok"));
+    okButton->setDefault(true);
+    QDialogButtonBox* buttonBox = new QDialogButtonBox(self);
+    buttonBox->addButton(okButton, QDialogButtonBox::AcceptRole);
+    self->connect(buttonBox,SIGNAL(accepted()), settingDialog, SLOT(accept()));
+
     QVBoxLayout* advbox = new QVBoxLayout();
     QHBoxLayout* adhbox = new QHBoxLayout();
     adhbox->addWidget(makeSeparator(QObject::tr("Inbound Parameters")));
     adhbox->addWidget(makeSeparator(QObject::tr("Outbound Parameters")));
     advbox->addLayout(adhbox);
     advbox->addLayout(adbox);
-    advbox->addStretch();
-    adwidget->setLayout(advbox);
+    advbox->addWidget(buttonBox);
+    settingDialog->setLayout(advbox);
 
     QHBoxLayout* tbox = new QHBoxLayout();
     clrButton = new QPushButton(QObject::tr("Clear"));
@@ -473,29 +485,26 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     tbox->addWidget(clrButton);
     tbox->addWidget(aplButton);
 
-    QTabWidget* tab = new QTabWidget();
-    tab->addTab(bswidget, QObject::tr("Basic"));
-    tab->addTab(adwidget, QObject::tr("Advanced"));
-
     QWidget* central = new QWidget();
     QVBoxLayout* vbox = new QVBoxLayout();
-    vbox->addWidget(tab);
+    vbox->addWidget(bswidget);
     vbox->addLayout(tbox);
     central->setLayout(vbox);
 
     self->setCentralWidget(central);
 
-    QObject::connect(inboundDelayDistributionCheck, SIGNAL(toggled(bool)), inboundDelayDistributionCombo, SLOT(setEnabled(bool)));
-    QObject::connect(outboundDelayDistributionCheck, SIGNAL(toggled(bool)), outboundDelayDistributionCombo, SLOT(setEnabled(bool)));
-    QObject::connect(inboundSlotDistributionCheck, SIGNAL(toggled(bool)), inboundSlotDistributionCombo, SLOT(setEnabled(bool)));
-    QObject::connect(outboundSlotDistributionCheck, SIGNAL(toggled(bool)), outboundSlotDistributionCombo, SLOT(setEnabled(bool)));
-    QObject::connect(clrButton, SIGNAL(clicked()), self, SLOT(onClearButtonClicked()));
-    QObject::connect(aplButton, SIGNAL(toggled(bool)), self, SLOT(onApplyButtonToggled(bool)));
-    QObject::connect(showAct, SIGNAL(triggered(bool)), self, SLOT(onShowActionTriggered(bool)));
-    QObject::connect(debugAct, SIGNAL(triggered(bool)), self, SLOT(onDebugActionTriggered(bool)));
-    QObject::connect(debugAct, SIGNAL(triggered(bool)), showAct, SLOT(setChecked(bool)));
-    QObject::connect(ifbCombo, SIGNAL(currentTextChanged(QString)), self, SLOT(onCurrentIFBChanged(QString)));
-    QObject::connect(quitAct, SIGNAL(triggered()), self, SLOT(close()));
+    self->connect(inboundDelayDistributionCheck, SIGNAL(toggled(bool)), inboundDelayDistributionCombo, SLOT(setEnabled(bool)));
+    self->connect(outboundDelayDistributionCheck, SIGNAL(toggled(bool)), outboundDelayDistributionCombo, SLOT(setEnabled(bool)));
+    self->connect(inboundSlotDistributionCheck, SIGNAL(toggled(bool)), inboundSlotDistributionCombo, SLOT(setEnabled(bool)));
+    self->connect(outboundSlotDistributionCheck, SIGNAL(toggled(bool)), outboundSlotDistributionCombo, SLOT(setEnabled(bool)));
+    self->connect(clrButton, SIGNAL(clicked()), self, SLOT(onClearButtonClicked()));
+    self->connect(aplButton, SIGNAL(toggled(bool)), self, SLOT(onApplyButtonToggled(bool)));
+    self->connect(showAct, SIGNAL(triggered(bool)), self, SLOT(onShowActionTriggered(bool)));
+    self->connect(settingAct, SIGNAL(triggered(bool)), self, SLOT(onSettingActionTriggered(bool)));
+    self->connect(debugAct, SIGNAL(triggered(bool)), self, SLOT(onDebugActionTriggered(bool)));
+    self->connect(debugAct, SIGNAL(triggered(bool)), showAct, SLOT(setChecked(bool)));
+    self->connect(ifbCombo, SIGNAL(currentTextChanged(QString)), self, SLOT(onCurrentIFBChanged(QString)));
+    self->connect(quitAct, SIGNAL(triggered()), self, SLOT(close()));
 }
 
 
@@ -587,7 +596,7 @@ void MainWindow::onClearButtonClicked()
 }
 
 
-void MainWindow::onApplyButtonToggled(bool on)
+void MainWindow::onApplyButtonToggled(const bool& on)
 {
     QPalette palette;
 
@@ -603,13 +612,19 @@ void MainWindow::onApplyButtonToggled(bool on)
 }
 
 
-void MainWindow::onShowActionTriggered(bool on)
+void MainWindow::onShowActionTriggered(const bool& on)
 {
     impl->showCommands = on;
 }
 
 
-void MainWindow::onDebugActionTriggered(bool on)
+void MainWindow::onSettingActionTriggered(const bool& on)
+{
+    impl->settingDialog->show();
+}
+
+
+void MainWindow::onDebugActionTriggered(const bool& on)
 {
     impl->debugMode = on;
     impl->showCommands = on;
