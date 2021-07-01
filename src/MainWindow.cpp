@@ -405,9 +405,6 @@ void MainWindowImpl::onTCExecute()
     double inboundSlotMinDelay = config->spin(ConfigDialog::IN_SLT_MND);
     double inboundSlotMaxDelay = config->spin(ConfigDialog::IN_SLT_MXD);
 
-    cout << inboundLimitPackets << endl;
-    cout << inboundDelayJitter << endl;
-
     QString item = config->combo(ConfigDialog::IN_DLY_DST);
     bool isCheckedInboundDelayDistribution = true;
     string inboundDelayDistribution;
