@@ -27,6 +27,7 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <iostream>
+#include "ConfigDialog.h"
 
 #define IFR_MAX 10
 #define DELAY_MAX 100000
@@ -153,6 +154,8 @@ public:
     QPushButton* clrButton;
     QPushButton* aplButton;
 
+    ConfigDialog* config;
+
     QWidget* makeSeparator(QString text);
 
     void onTCInitialize();
@@ -198,6 +201,8 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 
     QAction* quitAct = new QAction(QObject::tr("Quit"));
     fileMenu->addAction(quitAct);
+
+    config = new ConfigDialog();
 
     // Basic Tab
     QWidget* bswidget = new QWidget();
@@ -500,7 +505,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     self->connect(clrButton, SIGNAL(clicked()), self, SLOT(onClearButtonClicked()));
     self->connect(aplButton, SIGNAL(toggled(bool)), self, SLOT(onApplyButtonToggled(bool)));
     self->connect(showAct, SIGNAL(triggered(bool)), self, SLOT(onShowActionTriggered(bool)));
-    self->connect(settingAct, SIGNAL(triggered(bool)), self, SLOT(onSettingActionTriggered(bool)));
+    self->connect(settingAct, SIGNAL(triggered(bool)), config, SLOT(show()));
     self->connect(debugAct, SIGNAL(triggered(bool)), self, SLOT(onDebugActionTriggered(bool)));
     self->connect(debugAct, SIGNAL(triggered(bool)), showAct, SLOT(setChecked(bool)));
     self->connect(ifbCombo, SIGNAL(currentTextChanged(QString)), self, SLOT(onCurrentIFBChanged(QString)));

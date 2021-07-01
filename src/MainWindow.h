@@ -3,8 +3,8 @@
   @author Kenta Suzuki
 */
 
-#ifndef QTC_APP_MAIN_WINDOW_H
-#define QTC_APP_MAIN_WINDOW_H
+#ifndef QTCAPP_MAINWINDOW_H
+#define QTCAPP_MAINWINDOW_H
 
 #include <QMainWindow>
 
@@ -31,4 +31,4 @@ public Q_SLOTS:
     void onCurrentIFBChanged(QString ifbName);
 };
 
-#endif // QTC_APP_MAIN_WINDOW_H
+#endif // QTCAPP_MAINWINDOW_H

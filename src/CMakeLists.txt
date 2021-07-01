@@ -4,11 +4,13 @@ set(target qtc-app)
 QT5_ADD_RESOURCES(RC_SRCS qtc-app.qrc)
 
 set(sources
+    ConfigDialog.cpp
     main.cpp
     MainWindow.cpp
 )
 
 set(headers
+    ConfigDialog.h
     MainWindow.h
 )
 
