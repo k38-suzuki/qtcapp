@@ -113,7 +113,7 @@ ConfigDialogImpl::ConfigDialogImpl(ConfigDialog *self)
         gbox->addWidget(spin, info.row, info.cln);
     }
 
-    QStringList distributions = { "uniform", "normal", "pareto", "paretonormal" };
+    QStringList distributions = { "disabled", "uniform", "normal", "pareto", "paretonormal" };
     QStringList states = { "disabled", "enabled" };
     for(int i = 0; i < ConfigDialog::NUM_COMBOS; ++i) {
         combos[i] = new QComboBox();
@@ -122,7 +122,6 @@ ConfigDialogImpl::ConfigDialogImpl(ConfigDialog *self)
             combo->addItems(states);
         } else {
             combo->addItems(distributions);
-            combo->setEnabled(false);
         }
         combo->setCurrentIndex(0);
         ComboInfo info = comboInfo[i];
@@ -150,13 +149,13 @@ ConfigDialog::~ConfigDialog()
 }
 
 
-double ConfigDialog::spin(const bool& index) const
+double ConfigDialog::spin(const int& index) const
 {
     return impl->spins[index]->value();
 }
 
 
-QString ConfigDialog::combo(const bool& index) const
+QString ConfigDialog::combo(const int& index) const
 {
     return impl->combos[index]->currentText();
 }

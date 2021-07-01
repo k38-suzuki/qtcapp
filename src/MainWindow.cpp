@@ -6,8 +6,6 @@
 #include "MainWindow.h"
 #include <QCheckBox>
 #include <QComboBox>
-#include <QDialog>
-#include <QDialogButtonBox>
 #include <QDoubleSpinBox>
 #include <QFrame>
 #include <QGridLayout>
@@ -94,60 +92,17 @@ public:
     QLineEdit* srcLine;
     QLineEdit* dstLine;
 
-    QDoubleSpinBox* inboundLimitPacketsSpin;
     QDoubleSpinBox* inboundDelayTimeSpin;
-    QDoubleSpinBox* inboundDelayJitterSpin;
-    QDoubleSpinBox* inboundDelayCorrelationSpin;
-    QCheckBox* inboundDelayDistributionCheck;
-    QComboBox* inboundDelayDistributionCombo;
-    QCheckBox* inboundLossRandomCheck;
     QDoubleSpinBox* inboundLossPercentSpin;
-    QDoubleSpinBox* inboundLossCorrelationSpin;
-    QDoubleSpinBox* inboundCorruptPercentSpin;
-    QDoubleSpinBox* inboundCorruptCorrelationSpin;
-    QDoubleSpinBox* inboundDuplicationPercentSpin;
-    QDoubleSpinBox* inboundDuplicationCorrelationSpin;
-    QDoubleSpinBox* inboundReorderingPercentSpin;
-    QDoubleSpinBox* inboundReorderingCorrelationSpin;
-    QDoubleSpinBox* inboundReorderingDistanceSpin;
     QDoubleSpinBox* inboundRateRateSpin;
-    QDoubleSpinBox* inboundRatePacketOverheadSpin;
-    QDoubleSpinBox* inboundRateCellSizeSpin;
-    QDoubleSpinBox* inboundRateCellOverheadSpin;
-    QDoubleSpinBox* inboundSlotMinDelaySpin;
-    QDoubleSpinBox* inboundSlotMaxDelaySpin;
-    QCheckBox* inboundSlotDistributionCheck;
-    QComboBox* inboundSlotDistributionCombo;
 
-    QDoubleSpinBox* outboundLimitPacketsSpin;
     QDoubleSpinBox* outboundDelayTimeSpin;
-    QDoubleSpinBox* outboundDelayJitterSpin;
-    QDoubleSpinBox* outboundDelayCorrelationSpin;
-    QCheckBox* outboundDelayDistributionCheck;
-    QComboBox* outboundDelayDistributionCombo;
-    QCheckBox* outboundLossRandomCheck;
     QDoubleSpinBox* outboundLossPercentSpin;
-    QDoubleSpinBox* outboundLossCorrelationSpin;
-    QDoubleSpinBox* outboundCorruptPercentSpin;
-    QDoubleSpinBox* outboundCorruptCorrelationSpin;
-    QDoubleSpinBox* outboundDuplicationPercentSpin;
-    QDoubleSpinBox* outboundDuplicationCorrelationSpin;
-    QDoubleSpinBox* outboundReorderingPercentSpin;
-    QDoubleSpinBox* outboundReorderingCorrelationSpin;
-    QDoubleSpinBox* outboundReorderingDistanceSpin;
     QDoubleSpinBox* outboundRateRateSpin;
-    QDoubleSpinBox* outboundRatePacketOverheadSpin;
-    QDoubleSpinBox* outboundRateCellSizeSpin;
-    QDoubleSpinBox* outboundRateCellOverheadSpin;
-    QDoubleSpinBox* outboundSlotMinDelaySpin;
-    QDoubleSpinBox* outboundSlotMaxDelaySpin;
-    QCheckBox* outboundSlotDistributionCheck;
-    QComboBox* outboundSlotDistributionCombo;
 
     QAction* showAct;
     bool showCommands;
     QAction* settingAct;
-    QDialog* settingDialog;
     QAction* debugAct;
     bool debugMode;
 
@@ -156,7 +111,7 @@ public:
 
     ConfigDialog* config;
 
-    QWidget* makeSeparator(QString text);
+    QHBoxLayout* makeSeparator(QString text);
 
     void onTCInitialize();
     void onTCClear();
@@ -277,211 +232,14 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     bsbox->addWidget(outboundRateRateSpin, bsindex++, 3);
 
     QHBoxLayout* bshbox = new QHBoxLayout();
-    bshbox->addWidget(makeSeparator(QObject::tr("Inbound Parameters")));
-    bshbox->addWidget(makeSeparator(QObject::tr("Outbound Parameters")));
+    bshbox->addLayout(makeSeparator(QObject::tr("Inbound")));
+    bshbox->addLayout(makeSeparator(QObject::tr("Outbound")));
 
     bsvbox->addLayout(sbox);
     bsvbox->addLayout(bshbox);
     bsvbox->addLayout(bsbox);
     bsvbox->addStretch();
     bswidget->setLayout(bsvbox);
-
-    // Advanced Tab
-    inboundLimitPacketsSpin = new QDoubleSpinBox();
-    inboundLimitPacketsSpin->setRange(0.0, 10000.0);
-    inboundLimitPacketsSpin->setValue(2000.0);
-    inboundDelayJitterSpin = new QDoubleSpinBox();
-    inboundDelayJitterSpin->setRange(0.0, DELAY_MAX);
-    inboundDelayCorrelationSpin = new QDoubleSpinBox();
-    inboundDelayCorrelationSpin->setRange(0.0, 100.0);
-    inboundDelayDistributionCheck = new QCheckBox();
-    inboundDelayDistributionCheck->setText(QObject::tr("Delay Distribution [-]"));
-    inboundDelayDistributionCheck->setChecked(false);
-    inboundDelayDistributionCombo = new QComboBox();
-    QStringList distributions = { "uniform", "normal", "pareto", "paretonormal" };
-    inboundDelayDistributionCombo->addItems(distributions);
-    inboundDelayDistributionCombo->setEnabled(false);
-    inboundDelayDistributionCombo->setCurrentIndex(0);
-    inboundLossRandomCheck = new QCheckBox();
-    inboundLossRandomCheck->setText(QObject::tr("Loss Random [-]"));
-    inboundLossRandomCheck->setChecked(false);
-    inboundLossCorrelationSpin = new QDoubleSpinBox();
-    inboundLossCorrelationSpin->setRange(0.0, LOSS_MAX);
-    inboundCorruptPercentSpin = new QDoubleSpinBox();
-    inboundCorruptPercentSpin->setRange(0.0, 100.0);
-    inboundCorruptCorrelationSpin = new QDoubleSpinBox();
-    inboundCorruptCorrelationSpin->setRange(0.0, 100.0);
-    inboundDuplicationPercentSpin = new QDoubleSpinBox();
-    inboundDuplicationPercentSpin->setRange(0.0, 100.00);
-    inboundDuplicationCorrelationSpin = new QDoubleSpinBox();
-    inboundDuplicationCorrelationSpin->setRange(0.0, 100.00);
-    inboundReorderingPercentSpin = new QDoubleSpinBox();
-    inboundReorderingPercentSpin->setRange(0.0, 100.0);
-    inboundReorderingCorrelationSpin = new QDoubleSpinBox();
-    inboundReorderingCorrelationSpin->setRange(0.0, 100.0);
-    inboundReorderingDistanceSpin = new QDoubleSpinBox();
-    inboundReorderingDistanceSpin->setRange(0.0, 100);
-    inboundRatePacketOverheadSpin = new QDoubleSpinBox();
-    inboundRatePacketOverheadSpin->setRange(0.0, 100.0);
-    inboundRateCellSizeSpin = new QDoubleSpinBox();
-    inboundRateCellSizeSpin->setRange(0.0, 100.0);
-    inboundRateCellOverheadSpin = new QDoubleSpinBox();
-    inboundRateCellOverheadSpin->setRange(0.0, 100.0);
-    inboundSlotMinDelaySpin = new QDoubleSpinBox();
-    inboundSlotMinDelaySpin->setRange(0.0, DELAY_MAX);
-    inboundSlotMaxDelaySpin = new QDoubleSpinBox();
-    inboundSlotMaxDelaySpin->setRange(0.0, DELAY_MAX);
-    inboundSlotDistributionCheck = new QCheckBox();
-    inboundSlotDistributionCheck->setText(QObject::tr("Slot Distribution [-]"));
-    inboundSlotDistributionCheck->setChecked(false);
-    inboundSlotDistributionCombo = new QComboBox();
-    inboundSlotDistributionCombo->addItems(distributions);
-    inboundSlotDistributionCombo->setEnabled(false);
-
-    outboundLimitPacketsSpin = new QDoubleSpinBox();
-    outboundLimitPacketsSpin->setRange(0.0, 10000.0);
-    outboundLimitPacketsSpin->setValue(2000.0);
-    outboundDelayJitterSpin = new QDoubleSpinBox();
-    outboundDelayJitterSpin->setRange(0.0, DELAY_MAX);
-    outboundDelayCorrelationSpin = new QDoubleSpinBox();
-    outboundDelayCorrelationSpin->setRange(0.0, 100.0);
-    outboundDelayDistributionCheck = new QCheckBox();
-    outboundDelayDistributionCheck->setText(QObject::tr("Delay Distribution [-]"));
-    outboundDelayDistributionCheck->setChecked(false);
-    outboundDelayDistributionCombo = new QComboBox();
-    outboundDelayDistributionCombo->setEnabled(false);
-    outboundDelayDistributionCombo->addItems(distributions);
-    outboundDelayDistributionCombo->setCurrentIndex(0);
-    outboundLossRandomCheck = new QCheckBox();
-    outboundLossRandomCheck->setText(QObject::tr("Loss Random [-]"));
-    outboundLossRandomCheck->setChecked(false);
-    outboundLossCorrelationSpin = new QDoubleSpinBox();
-    outboundLossCorrelationSpin->setRange(0.0, LOSS_MAX);
-    outboundCorruptPercentSpin = new QDoubleSpinBox();
-    outboundCorruptPercentSpin->setRange(0.0, 100.0);
-    outboundCorruptCorrelationSpin = new QDoubleSpinBox();
-    outboundCorruptCorrelationSpin->setRange(0.0, 100.0);
-    outboundDuplicationPercentSpin = new QDoubleSpinBox();
-    outboundDuplicationPercentSpin->setRange(0.0, 100.00);
-    outboundDuplicationCorrelationSpin = new QDoubleSpinBox();
-    outboundDuplicationCorrelationSpin->setRange(0.0, 100.00);
-    outboundReorderingPercentSpin = new QDoubleSpinBox();
-    outboundReorderingPercentSpin->setRange(0.0, 100.0);
-    outboundReorderingCorrelationSpin = new QDoubleSpinBox();
-    outboundReorderingCorrelationSpin->setRange(0.0, 100.0);
-    outboundReorderingDistanceSpin = new QDoubleSpinBox();
-    outboundReorderingDistanceSpin->setRange(0.0, 100);
-    outboundRatePacketOverheadSpin = new QDoubleSpinBox();
-    outboundRatePacketOverheadSpin->setRange(0.0, 100.0);
-    outboundRateCellSizeSpin = new QDoubleSpinBox();
-    outboundRateCellSizeSpin->setRange(0.0, 100.0);
-    outboundRateCellOverheadSpin = new QDoubleSpinBox();
-    outboundRateCellOverheadSpin->setRange(0.0, 100.0);
-    outboundSlotMinDelaySpin = new QDoubleSpinBox();
-    outboundSlotMinDelaySpin->setRange(0.0, DELAY_MAX);
-    outboundSlotMaxDelaySpin = new QDoubleSpinBox();
-    outboundSlotMaxDelaySpin->setRange(0.0, DELAY_MAX);
-    outboundSlotDistributionCheck = new QCheckBox();
-    outboundSlotDistributionCheck->setText(QObject::tr("Slot Distribution [-]"));
-    outboundSlotDistributionCheck->setChecked(false);
-    outboundSlotDistributionCombo = new QComboBox();
-    outboundSlotDistributionCombo->addItems(distributions);
-    outboundSlotDistributionCombo->setEnabled(false);
-
-    QGridLayout* adbox = new QGridLayout();
-    int adindex = 0;
-    adbox->addWidget(new QLabel(QObject::tr("Limit Packets [packets]")), adindex, 0);
-    adbox->addWidget(inboundLimitPacketsSpin, adindex, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Limit Packets [packets]")), adindex, 2);
-    adbox->addWidget(outboundLimitPacketsSpin, adindex++, 3);
-    adbox->addWidget(new QLabel(QObject::tr("Delay Jitter [ms]")), adindex, 0);
-    adbox->addWidget(inboundDelayJitterSpin, adindex, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Delay Jitter [ms]")), adindex, 2);
-    adbox->addWidget(outboundDelayJitterSpin, adindex++, 3);
-    adbox->addWidget(new QLabel(QObject::tr("Delay Correlation [%]")), adindex, 0);
-    adbox->addWidget(inboundDelayCorrelationSpin, adindex, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Delay Correlation [%]")), adindex, 2);
-    adbox->addWidget(outboundDelayCorrelationSpin, adindex++, 3);
-    adbox->addWidget(inboundDelayDistributionCheck, adindex, 0);
-    adbox->addWidget(inboundDelayDistributionCombo, adindex, 1);
-    adbox->addWidget(outboundDelayDistributionCheck, adindex, 2);
-    adbox->addWidget(outboundDelayDistributionCombo, adindex++, 3);
-    adbox->addWidget(inboundLossRandomCheck, adindex, 0);
-    adbox->addWidget(outboundLossRandomCheck, adindex++, 2);
-    adbox->addWidget(new QLabel(QObject::tr("Loss Correlation [%]")), adindex, 0);
-    adbox->addWidget(inboundLossCorrelationSpin, adindex, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Loss Correlation [%]")), adindex, 2);
-    adbox->addWidget(outboundLossCorrelationSpin, adindex++, 3);
-    adbox->addWidget(new QLabel(QObject::tr("Duplication Percent [%]")), adindex, 0);
-    adbox->addWidget(inboundDuplicationPercentSpin, adindex, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Duplication Percent [%]")), adindex, 2);
-    adbox->addWidget(outboundDuplicationPercentSpin, adindex++, 3);
-    adbox->addWidget(new QLabel(QObject::tr("Duplication Correlation [%]")), adindex, 0);
-    adbox->addWidget(inboundDuplicationCorrelationSpin, adindex, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Duplication Correlation [%]")), adindex, 2);
-    adbox->addWidget(outboundDuplicationCorrelationSpin, adindex++, 3);
-    adbox->addWidget(new QLabel(QObject::tr("Corruption Percent [%]")), adindex, 0);
-    adbox->addWidget(inboundCorruptPercentSpin, adindex, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Corruption Percent [%]")), adindex, 2);
-    adbox->addWidget(outboundCorruptPercentSpin, adindex++, 3);
-    adbox->addWidget(new QLabel(QObject::tr("Corruption Correlation [%]")), adindex, 0);
-    adbox->addWidget(inboundCorruptCorrelationSpin, adindex, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Corruption Correlation [%]")), adindex, 2);
-    adbox->addWidget(outboundCorruptCorrelationSpin, adindex++, 3);
-    adbox->addWidget(new QLabel(QObject::tr("Reordering Percent [%]")), adindex, 0);
-    adbox->addWidget(inboundReorderingPercentSpin, adindex, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Reordering Percent [%]")), adindex, 2);
-    adbox->addWidget(outboundReorderingPercentSpin, adindex++, 3);
-    adbox->addWidget(new QLabel(QObject::tr("Reordering Correlation [%]")), adindex, 0);
-    adbox->addWidget(inboundReorderingCorrelationSpin, adindex, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Reordering Correlation [%]")), adindex, 2);
-    adbox->addWidget(outboundReorderingCorrelationSpin, adindex++, 3);
-    adbox->addWidget(new QLabel(QObject::tr("Reordering Distance [packets]")), adindex, 0);
-    adbox->addWidget(inboundReorderingDistanceSpin, adindex, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Reordering Distance [packets]")), adindex, 2);
-    adbox->addWidget(outboundReorderingDistanceSpin, adindex++, 3);
-    adbox->addWidget(new QLabel(QObject::tr("Rate Packet Overhead [byte]")), adindex, 0);
-    adbox->addWidget(inboundRatePacketOverheadSpin, adindex, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Rate Packet Overhead [byte]")), adindex, 2);
-    adbox->addWidget(outboundRatePacketOverheadSpin, adindex++, 3);
-    adbox->addWidget(new QLabel(QObject::tr("Rate Cell Size [byte]")), adindex, 0);
-    adbox->addWidget(inboundRateCellSizeSpin, adindex, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Rate Cell Size [byte]")), adindex, 2);
-    adbox->addWidget(outboundRateCellSizeSpin, adindex++, 3);
-    adbox->addWidget(new QLabel(QObject::tr("Rate Cell Overhead [byte]")), adindex, 0);
-    adbox->addWidget(inboundRateCellOverheadSpin, adindex, 1);
-    adbox->addWidget(new QLabel(QObject::tr("Rate Cell Overhead [byte]")), adindex, 2);
-    adbox->addWidget(outboundRateCellOverheadSpin, adindex++, 3);
-//    adbox->addWidget(new QLabel(QObject::tr("Slot Min Delay [ms]")), adindex, 0);
-//    adbox->addWidget(inboundSlotMinDelaySpin, adindex, 1);
-//    adbox->addWidget(new QLabel(QObject::tr("Slot Min Delay [ms]")), adindex, 2);
-//    adbox->addWidget(outboundSlotMinDelaySpin, adindex++, 3);
-//    adbox->addWidget(new QLabel(QObject::tr("Slot Max Delay [ms]")), adindex, 0);
-//    adbox->addWidget(inboundSlotMaxDelaySpin, adindex, 1);
-//    adbox->addWidget(new QLabel(QObject::tr("Slot Max Delay [ms]")), adindex, 2);
-//    adbox->addWidget(outboundSlotMaxDelaySpin, adindex++, 3);
-//    adbox->addWidget(inboundSlotDistributionCheck, adindex, 0);
-//    adbox->addWidget(inboundSlotDistributionCombo, adindex, 1);
-//    adbox->addWidget(outboundSlotDistributionCheck, adindex, 2);
-//    adbox->addWidget(outboundSlotDistributionCombo, adindex++, 3);
-
-    settingDialog = new QDialog();
-    settingDialog->setWindowTitle(QObject::tr("Advanced Settings"));
-
-    QPushButton* okButton = new QPushButton(QObject::tr("&Ok"));
-    okButton->setDefault(true);
-    QDialogButtonBox* buttonBox = new QDialogButtonBox(self);
-    buttonBox->addButton(okButton, QDialogButtonBox::AcceptRole);
-    self->connect(buttonBox,SIGNAL(accepted()), settingDialog, SLOT(accept()));
-
-    QVBoxLayout* advbox = new QVBoxLayout();
-    QHBoxLayout* adhbox = new QHBoxLayout();
-    adhbox->addWidget(makeSeparator(QObject::tr("Inbound Parameters")));
-    adhbox->addWidget(makeSeparator(QObject::tr("Outbound Parameters")));
-    advbox->addLayout(adhbox);
-    advbox->addLayout(adbox);
-    advbox->addWidget(buttonBox);
-    settingDialog->setLayout(advbox);
 
     QHBoxLayout* tbox = new QHBoxLayout();
     clrButton = new QPushButton(QObject::tr("Clear"));
@@ -498,10 +256,6 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 
     self->setCentralWidget(central);
 
-    self->connect(inboundDelayDistributionCheck, SIGNAL(toggled(bool)), inboundDelayDistributionCombo, SLOT(setEnabled(bool)));
-    self->connect(outboundDelayDistributionCheck, SIGNAL(toggled(bool)), outboundDelayDistributionCombo, SLOT(setEnabled(bool)));
-    self->connect(inboundSlotDistributionCheck, SIGNAL(toggled(bool)), inboundSlotDistributionCombo, SLOT(setEnabled(bool)));
-    self->connect(outboundSlotDistributionCheck, SIGNAL(toggled(bool)), outboundSlotDistributionCombo, SLOT(setEnabled(bool)));
     self->connect(clrButton, SIGNAL(clicked()), self, SLOT(onClearButtonClicked()));
     self->connect(aplButton, SIGNAL(toggled(bool)), self, SLOT(onApplyButtonToggled(bool)));
     self->connect(showAct, SIGNAL(triggered(bool)), self, SLOT(onShowActionTriggered(bool)));
@@ -520,9 +274,8 @@ MainWindow::~MainWindow()
 }
 
 
-QWidget* MainWindowImpl::makeSeparator(QString text)
+QHBoxLayout* MainWindowImpl::makeSeparator(QString text)
 {
-    QWidget* separator = new QWidget();
     QHBoxLayout* hbox = new QHBoxLayout();
     QFrame* line0 = new QFrame();
     line0->setFrameShape(QFrame::HLine);
@@ -538,9 +291,8 @@ QWidget* MainWindowImpl::makeSeparator(QString text)
     } else {
         hbox->addWidget(line0);
     }
-    separator->setLayout(hbox);
 
-    return separator;
+    return hbox;
 }
 
 
@@ -551,53 +303,12 @@ void MainWindow::onClearButtonClicked()
     impl->srcLine->setText("0.0.0.0/0");
     impl->dstLine->setText("0.0.0.0/0");
 
-    impl->inboundLimitPacketsSpin->setValue(2000.0);
     impl->inboundDelayTimeSpin->setValue(0.0);
-    impl->inboundDelayJitterSpin->setValue(0.0);
-    impl->inboundDelayCorrelationSpin->setValue(0.0);
-    impl->inboundDelayDistributionCheck->setChecked(false);
-    impl->inboundDelayDistributionCombo->setCurrentIndex(0);
-    impl->inboundLossRandomCheck->setChecked(false);
     impl->inboundLossPercentSpin->setValue(0.0);
-    impl->inboundLossCorrelationSpin->setValue(0.0);
-    impl->inboundCorruptPercentSpin->setValue(0.0);
-    impl->inboundCorruptCorrelationSpin->setValue(0.0);
-    impl->inboundDuplicationPercentSpin->setValue(0.0);
-    impl->inboundDuplicationCorrelationSpin->setValue(0.0);
-    impl->inboundReorderingPercentSpin->setValue(0.0);
-    impl->inboundReorderingCorrelationSpin->setValue(0.0);
-    impl->inboundReorderingDistanceSpin->setValue(0.0);
     impl->inboundRateRateSpin->setValue(0.0);
-    impl->inboundRatePacketOverheadSpin->setValue(0.0);
-    impl->inboundRateCellSizeSpin->setValue(0.0);
-    impl->inboundRateCellOverheadSpin->setValue(0.0);
-    impl->inboundSlotMinDelaySpin->setValue(0.0);
-    impl->inboundSlotMaxDelaySpin->setValue(0.0);
-    impl->inboundSlotDistributionCheck->setChecked(false);
-
-    impl->outboundLimitPacketsSpin->setValue(2000.0);
     impl->outboundDelayTimeSpin->setValue(0.0);
-    impl->outboundDelayJitterSpin->setValue(0.0);
-    impl->outboundDelayCorrelationSpin->setValue(0.0);
-    impl->outboundDelayDistributionCheck->setChecked(false);
-    impl->outboundDelayDistributionCombo->setCurrentIndex(0);
-    impl->outboundLossRandomCheck->setChecked(false);
     impl->outboundLossPercentSpin->setValue(0.0);
-    impl->outboundLossCorrelationSpin->setValue(0.0);
-    impl->outboundCorruptPercentSpin->setValue(0.0);
-    impl->outboundCorruptCorrelationSpin->setValue(0.0);
-    impl->outboundDuplicationPercentSpin->setValue(0.0);
-    impl->outboundDuplicationCorrelationSpin->setValue(0.0);
-    impl->outboundReorderingPercentSpin->setValue(0.0);
-    impl->outboundReorderingCorrelationSpin->setValue(0.0);
-    impl->outboundReorderingDistanceSpin->setValue(0.0);
     impl->outboundRateRateSpin->setValue(0.0);
-    impl->outboundRatePacketOverheadSpin->setValue(0.0);
-    impl->outboundRateCellSizeSpin->setValue(0.0);
-    impl->outboundRateCellOverheadSpin->setValue(0.0);
-    impl->outboundSlotMinDelaySpin->setValue(0.0);
-    impl->outboundSlotMaxDelaySpin->setValue(0.0);
-    impl->outboundSlotDistributionCheck->setChecked(false);
 }
 
 
@@ -620,12 +331,6 @@ void MainWindow::onApplyButtonToggled(const bool& on)
 void MainWindow::onShowActionTriggered(const bool& on)
 {
     impl->showCommands = on;
-}
-
-
-void MainWindow::onSettingActionTriggered(const bool& on)
-{
-    impl->settingDialog->show();
 }
 
 
@@ -688,55 +393,98 @@ void MainWindowImpl::onTCExecute()
         return;
     }
 
-    double inboundLimitPackets = inboundLimitPacketsSpin->value();
     double inboundDelayTime = inboundDelayTimeSpin->value();
-    double inboundDelayJitter = inboundDelayJitterSpin->value();
-    double inboundDelayCorrelation = inboundDelayCorrelationSpin->value();
-    bool isCheckedInboundDelayDistribution = inboundDelayDistributionCheck->isChecked();
-    string inboundDelayDistribution = inboundDelayDistributionCombo->currentText().toStdString();
-    bool isCheckedInboundLossRandom = inboundLossRandomCheck->isChecked();
     double inboundLossPercent = inboundLossPercentSpin->value();
-    double inboundLossCorrelation = inboundLossCorrelationSpin->value();
-    double inboundCorruptPercent = inboundCorruptPercentSpin->value();
-    double inboundCorruptCorrelation = inboundCorruptCorrelationSpin->value();
-    double inboundDuplicationPercent = inboundDuplicationPercentSpin->value();
-    double inboundDuplicationCorrelation = inboundDuplicationCorrelationSpin->value();
-    double inboundReorderingPercent = inboundReorderingPercentSpin->value();
-    double inboundReorderingCorrelation = inboundReorderingCorrelationSpin->value();
-    double inboundReorderingDistance = inboundReorderingDistanceSpin->value();
     double inboundRateRate = inboundRateRateSpin->value();
-    double inboundRatePacketOverhead = inboundRatePacketOverheadSpin->value();
-    double inboundRateCellSize = inboundRateCellSizeSpin->value();
-    double inboundRateCellOverhead = inboundRateCellOverheadSpin->value();
-    double inboundSlotMinDelay = inboundSlotMinDelaySpin->value();
-    double inboundSlotMaxDelay = inboundSlotMaxDelaySpin->value();
-    bool isCheckedInboundSlotDistribution = inboundSlotDistributionCheck->isChecked();
-    string inboundSlotDistribution = inboundSlotDistributionCombo->currentText().toStdString();
 
-    double outboundLimitPackets = outboundLimitPacketsSpin->value();
+    double inboundLimitPackets = config->spin(ConfigDialog::IN_LMT_PKT);
+    double inboundDelayJitter = config->spin(ConfigDialog::IN_DLY_JTR);
+    double inboundDelayCorrelation = config->spin(ConfigDialog::IN_DLY_COR);
+    double inboundLossCorrelation = config->spin(ConfigDialog::IN_LOS_COR);
+    double inboundDuplicationPercent = config->spin(ConfigDialog::IN_DPL_PCT);
+    double inboundDuplicationCorrelation = config->spin(ConfigDialog::IN_DPL_COR);
+    double inboundCorruptPercent = config->spin(ConfigDialog::IN_CRP_PCT);
+    double inboundCorruptCorrelation = config->spin(ConfigDialog::IN_CRP_COR);
+    double inboundReorderingPercent = config->spin(ConfigDialog::IN_ROR_PCT);
+    double inboundReorderingCorrelation = config->spin(ConfigDialog::IN_ROR_COR);
+    double inboundReorderingDistance = config->spin(ConfigDialog::IN_ROR_DST);
+    double inboundRatePacketOverhead = config->spin(ConfigDialog::IN_RPK_OVH);
+    double inboundRateCellSize = config->spin(ConfigDialog::IN_RCL_SIZ);
+    double inboundRateCellOverhead = config->spin(ConfigDialog::IN_RCL_OVH);
+    double inboundSlotMinDelay = config->spin(ConfigDialog::IN_SLT_MND);
+    double inboundSlotMaxDelay = config->spin(ConfigDialog::IN_SLT_MXD);
+
+    cout << inboundLimitPackets << endl;
+    cout << inboundDelayJitter << endl;
+
+    QString item = config->combo(ConfigDialog::IN_DLY_DST);
+    bool isCheckedInboundDelayDistribution = true;
+    string inboundDelayDistribution;
+    if(item == "disabled") {
+        isCheckedInboundDelayDistribution = false;
+    } else {
+        inboundDelayDistribution = item.toStdString();
+    }
+
+    item = config->combo(ConfigDialog::IN_LOS_RDM);
+    bool isCheckedInboundLossRandom = true;
+    if(item == "disabled") {
+        isCheckedInboundLossRandom = false;
+    }
+
+    item = config->combo(ConfigDialog::IN_SLT_DST);
+    bool isCheckedInboundSlotDistribution = true;
+    string inboundSlotDistribution;
+    if(item == "disabled") {
+        isCheckedInboundSlotDistribution = false;
+    } else {
+        inboundSlotDistribution = item.toStdString();
+    }
+
     double outboundDelayTime = outboundDelayTimeSpin->value();
-    double outboundDelayJitter = outboundDelayJitterSpin->value();
-    double outboundDelayCorrelation = outboundDelayCorrelationSpin->value();
-    bool isCheckedOutboundDelayDistribution = outboundDelayDistributionCheck->isChecked();
-    string outboundDelayDistribution = outboundDelayDistributionCombo->currentText().toStdString();
-    bool isCheckedOutboundLossRandom = outboundLossRandomCheck->isChecked();
     double outboundLossPercent = outboundLossPercentSpin->value();
-    double outboundLossCorrelation = outboundLossCorrelationSpin->value();
-    double outboundCorruptPercent = outboundCorruptPercentSpin->value();
-    double outboundCorruptCorrelation = outboundCorruptCorrelationSpin->value();
-    double outboundDuplicationPercent = outboundDuplicationPercentSpin->value();
-    double outboundDuplicationCorrelation = outboundDuplicationCorrelationSpin->value();
-    double outboundReorderingPercent = outboundReorderingPercentSpin->value();
-    double outboundReorderingCorrelation = outboundReorderingCorrelationSpin->value();
-    double outboundReorderingDistance = outboundReorderingDistanceSpin->value();
     double outboundRateRate = outboundRateRateSpin->value();
-    double outboundRatePacketOverhead = outboundRatePacketOverheadSpin->value();
-    double outboundRateCellSize = outboundRateCellSizeSpin->value();
-    double outboundRateCellOverhead = outboundRateCellOverheadSpin->value();
-    double outboundSlotMinDelay = inboundSlotMinDelaySpin->value();
-    double outboundSlotMaxDelay = inboundSlotMaxDelaySpin->value();
-    bool isCheckedOutboundSlotDistribution = inboundSlotDistributionCheck->isChecked();
-    string outboundSlotDistribution = inboundSlotDistributionCombo->currentText().toStdString();
+
+    double outboundLimitPackets = config->spin(ConfigDialog::OUT_LMT_PKT);
+    double outboundDelayJitter = config->spin(ConfigDialog::OUT_DLY_JTR);
+    double outboundDelayCorrelation = config->spin(ConfigDialog::OUT_DLY_COR);
+    double outboundLossCorrelation = config->spin(ConfigDialog::OUT_LOS_COR);
+    double outboundDuplicationPercent = config->spin(ConfigDialog::OUT_DPL_PCT);
+    double outboundDuplicationCorrelation = config->spin(ConfigDialog::OUT_DPL_COR);
+    double outboundCorruptPercent = config->spin(ConfigDialog::OUT_CRP_PCT);
+    double outboundCorruptCorrelation = config->spin(ConfigDialog::OUT_CRP_COR);
+    double outboundReorderingPercent = config->spin(ConfigDialog::OUT_ROR_PCT);
+    double outboundReorderingCorrelation = config->spin(ConfigDialog::OUT_ROR_COR);
+    double outboundReorderingDistance = config->spin(ConfigDialog::OUT_ROR_DST);
+    double outboundRatePacketOverhead = config->spin(ConfigDialog::OUT_RPK_OVH);
+    double outboundRateCellSize = config->spin(ConfigDialog::OUT_RCL_SIZ);
+    double outboundRateCellOverhead = config->spin(ConfigDialog::OUT_RCL_OVH);
+    double outboundSlotMinDelay = config->spin(ConfigDialog::OUT_SLT_MND);
+    double outboundSlotMaxDelay = config->spin(ConfigDialog::OUT_SLT_MXD);
+
+    item = config->combo(ConfigDialog::OUT_DLY_DST);
+    bool isCheckedOutboundDelayDistribution = true;
+    string outboundDelayDistribution;
+    if(item == "disabled") {
+        isCheckedOutboundDelayDistribution = false;
+    } else {
+        outboundDelayDistribution = item.toStdString();
+    }
+
+    item = config->combo(ConfigDialog::OUT_LOS_RDM);
+    bool isCheckedOutboundLossRandom = true;
+    if(item == "disabled") {
+        isCheckedOutboundLossRandom = false;
+    }
+
+    item = config->combo(ConfigDialog::OUT_SLT_DST);
+    bool isCheckedOutboundSlotDistribution = true;
+    string outboundSlotDistribution;
+    if(item == "disabled") {
+        isCheckedOutboundSlotDistribution = false;
+    } else {
+        outboundSlotDistribution = item.toStdString();
+    }
 
     string inboundEffects;
     string outboundEffects;

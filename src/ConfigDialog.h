@@ -19,34 +19,34 @@ public:
     virtual ~ConfigDialog();
 
     enum SpinId {
-        IN_LMT_PKTSP, OUT_LMT_PKTSP,
-        IN_DLY_JTRSP, OUT_DLY_JTRSP,
-        IN_DLY_CORSP, OUT_DLY_CORSP,
-        IN_LOS_CORSP, OUT_LOS_CORSP,
-        IN_DPL_PCTSP, OUT_DPL_PCTSP,
-        IN_DPL_CORSP, OUT_DPL_CORSP,
-        IN_CRP_PCTSP, OUT_CRP_PCTSP,
-        IN_CRP_CORSP, OUT_CRP_CORSP,
-        IN_ROR_PCTSP, OUT_ROR_PCTSP,
-        IN_ROR_CORSP, OUT_ROR_CORSP,
-        IN_ROR_DSTSP, OUT_ROR_DSTSP,
-        IN_RPK_OVHSP, OUT_RPK_OVHSP,
-        IN_RCL_SIZSP, OUT_RCL_SIZSP,
-        IN_RCL_OVHSP, OUT_RCL_OVHSP,
-        IN_SLT_MNDSP, OUT_SLT_MNDSP,
-        IN_SLT_MXDSP, OUT_SLT_MXDSP,
+        IN_LMT_PKT, OUT_LMT_PKT,
+        IN_DLY_JTR, OUT_DLY_JTR,
+        IN_DLY_COR, OUT_DLY_COR,
+        IN_LOS_COR, OUT_LOS_COR,
+        IN_DPL_PCT, OUT_DPL_PCT,
+        IN_DPL_COR, OUT_DPL_COR,
+        IN_CRP_PCT, OUT_CRP_PCT,
+        IN_CRP_COR, OUT_CRP_COR,
+        IN_ROR_PCT, OUT_ROR_PCT,
+        IN_ROR_COR, OUT_ROR_COR,
+        IN_ROR_DST, OUT_ROR_DST,
+        IN_RPK_OVH, OUT_RPK_OVH,
+        IN_RCL_SIZ, OUT_RCL_SIZ,
+        IN_RCL_OVH, OUT_RCL_OVH,
+        IN_SLT_MND, OUT_SLT_MND,
+        IN_SLT_MXD, OUT_SLT_MXD,
         NUM_SPINS
     };
 
     enum ComboId {
-        IN_DLY_DSTCB, OUT_DLY_DSTCB,
-        IN_LOS_RDMCB, OUT_LOS_RDMCB,
-        IN_SLT_DSTCB, OUT_SLT_DSTCB,
+        IN_DLY_DST, OUT_DLY_DST,
+        IN_LOS_RDM, OUT_LOS_RDM,
+        IN_SLT_DST, OUT_SLT_DST,
         NUM_COMBOS
     };
 
-    double spin(const bool& index) const;
-    QString combo(const bool& index) const;
+    double spin(const int& index) const;
+    QString combo(const int& index) const;
 
 private:
     ConfigDialogImpl* impl;
