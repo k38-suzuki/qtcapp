@@ -4,7 +4,6 @@
 */
 
 #include "ConfigDialog.h"
-#include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QDoubleSpinBox>
@@ -23,10 +22,11 @@ const QStringList names = {
     "Corruption Percent [%]",        "Corruption Correlation [%]",
     "Reordering Percent [%]",        "Reordering Correlation [%]",
     "Reordering Distance [packets]", "Rate Packet Overhead [byte]",
-    "Rate Packet Overhead [byte]",   "Rate Cell Size [byte]",
-    "Rate Cell Overhead [byte]",     "Slot Min Delay [ms]",
-    "Slot Max Delay [ms]",           "Slot Distribution [-]"
+    "Rate Cell Size [byte]",         "Rate Cell Overhead [byte]",
+    "Slot Min Delay [ms]",           "Slot Max Delay [ms]",
+    "Slot Distribution [-]"
 };
+
 
 struct SpinInfo {
     int row;
@@ -56,6 +56,20 @@ SpinInfo spinInfo[] = {
     { 18, 1, 0.0, 100000.0,    0.0 }, { 18, 2, 0.0, 100000.0,    0.0 },
 };
 
+
+struct ComboInfo {
+    int row;
+    int cln;
+    bool enabled;
+};
+
+
+ComboInfo comboInfo[] = {
+    {  4, 1, false }, {  4, 2, false },
+    {  5, 1, false }, {  5, 2, false },
+    { 19, 1, false }, { 19, 2, false }
+};
+
 }
 
 class ConfigDialogImpl
@@ -65,7 +79,6 @@ public:
     ConfigDialog* self;
 
     QDoubleSpinBox* spins[ConfigDialog::NUM_SPINS];
-    QCheckBox* checks[ConfigDialog::NUM_CHECKS];
     QComboBox* combos[ConfigDialog::NUM_COMBOS];
 };
 
@@ -82,6 +95,39 @@ ConfigDialogImpl::ConfigDialogImpl(ConfigDialog *self)
     self->setWindowTitle("Advanced Settings");
     QVBoxLayout* vbox = new QVBoxLayout();
     QGridLayout* gbox = new QGridLayout();
+
+    gbox->addWidget(new QLabel("Inbound"), 0, 1);
+    gbox->addWidget(new QLabel("Outbound"), 0, 2);
+
+    for(int i = 0; i < 19; ++i) {
+        QLabel* label = new QLabel(names[i]);
+        gbox->addWidget(label, i + 1, 0);
+    }
+
+    for(int i = 0; i < ConfigDialog::NUM_SPINS; ++i) {
+        spins[i] = new QDoubleSpinBox();
+        QDoubleSpinBox* spin = spins[i];
+        SpinInfo info = spinInfo[i];
+        spin->setRange(info.lower, info.upper);
+        spin->setValue(info.value);
+        gbox->addWidget(spin, info.row, info.cln);
+    }
+
+    QStringList distributions = { "uniform", "normal", "pareto", "paretonormal" };
+    QStringList states = { "disabled", "enabled" };
+    for(int i = 0; i < ConfigDialog::NUM_COMBOS; ++i) {
+        combos[i] = new QComboBox();
+        QComboBox* combo = combos[i];
+        if(i == 2 || i == 3) {
+            combo->addItems(states);
+        } else {
+            combo->addItems(distributions);
+            combo->setEnabled(false);
+        }
+        combo->setCurrentIndex(0);
+        ComboInfo info = comboInfo[i];
+        gbox->addWidget(combo, info.row, info.cln);
+    }
 
     QPushButton* resetButton = new QPushButton("&Reset");
     QPushButton* okButton = new QPushButton("&Ok");
@@ -104,7 +150,29 @@ ConfigDialog::~ConfigDialog()
 }
 
 
+double ConfigDialog::spin(const bool& index) const
+{
+    return impl->spins[index]->value();
+}
+
+
+QString ConfigDialog::combo(const bool& index) const
+{
+    return impl->combos[index]->currentText();
+}
+
+
 void ConfigDialog::onResetButtonClicked()
 {
+    for(int i = 0; i < ConfigDialog::NUM_SPINS; ++i) {
+        QDoubleSpinBox* spin = impl->spins[i];
+        SpinInfo info = spinInfo[i];
+        spin->setRange(info.lower, info.upper);
+        spin->setValue(info.value);
+    }
 
+    for(int i = 0; i < ConfigDialog::NUM_COMBOS; ++i) {
+        QComboBox* combo = impl->combos[i];
+        combo->setCurrentIndex(0);
+    }
 }

@@ -38,18 +38,15 @@ public:
         NUM_SPINS
     };
 
-    enum CheckId {
-        IN_DLY_DSTCK, OUT_DLY_DSTCK,
-        IN_LOS_RDMCK, OUT_LOS_RDMCK,
-        IN_SLT_DSTCK, OUT_SLT_DSTCK,
-        NUM_CHECKS
-    };
-
     enum ComboId {
         IN_DLY_DSTCB, OUT_DLY_DSTCB,
+        IN_LOS_RDMCB, OUT_LOS_RDMCB,
         IN_SLT_DSTCB, OUT_SLT_DSTCB,
         NUM_COMBOS
     };
+
+    double spin(const bool& index) const;
+    QString combo(const bool& index) const;
 
 private:
     ConfigDialogImpl* impl;
