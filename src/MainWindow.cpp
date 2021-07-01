@@ -9,7 +9,6 @@
 #include <QDoubleSpinBox>
 #include <QFrame>
 #include <QGridLayout>
-#include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
@@ -28,9 +27,6 @@
 #include "ConfigDialog.h"
 
 #define IFR_MAX 10
-#define DELAY_MAX 100000
-#define RATE_MAX 11000000
-#define LOSS_MAX 100.0
 
 using namespace std;
 
@@ -78,6 +74,48 @@ bool addressCheck(const std::string& address)
     return true;
 }
 
+
+struct ComboInfo {
+    QString label;
+    int row;
+    int cln;
+};
+
+
+ComboInfo comboInfo[] = {
+    { "Interface", 0, 1 },
+    { "IFB",       0, 3 }
+};
+
+
+struct LineInfo {
+    QString label;
+    int row;
+    int cln;
+};
+
+
+LineInfo lineInfo[] = {
+    { "Source IP",      1, 1 },
+    { "Destination IP", 1, 3 }
+};
+
+
+struct SpinInfo {
+    int row;
+    int cln;
+    double lower;
+    double upper;
+    double value;
+};
+
+
+SpinInfo spinInfo[] = {
+    { 1, 1, 0.0,   100000.0, 0.0 }, { 1, 2, 0.0,   100000.0, 0.0 },
+    { 2, 1, 0.0,      100.0, 0.0 }, { 2, 2, 0.0,      100.0, 0.0 },
+    { 3, 1, 0.0, 11000000.0, 0.0 }, { 3, 2, 0.0, 11000000.0, 0.0 },
+};
+
 }
 
 
@@ -87,18 +125,18 @@ public:
     MainWindowImpl(MainWindow* self);
     MainWindow* self;
 
-    QComboBox* ifcCombo;
-    QComboBox* ifbCombo;
-    QLineEdit* srcLine;
-    QLineEdit* dstLine;
+    enum ComboId { IFC, IFB, NUM_COMBOS };
+    enum LineId { SRC, DST, NUM_LINES };
+    enum SpinId {
+        IN_DLY_TIM, OUT_DLY_TIM,
+        IN_LOS_PCT, OUT_LOS_PCT,
+        IN_RAT_RAT, OUT_RAT_RAT,
+        NUM_SPINS
+    };
 
-    QDoubleSpinBox* inboundDelayTimeSpin;
-    QDoubleSpinBox* inboundLossPercentSpin;
-    QDoubleSpinBox* inboundRateRateSpin;
-
-    QDoubleSpinBox* outboundDelayTimeSpin;
-    QDoubleSpinBox* outboundLossPercentSpin;
-    QDoubleSpinBox* outboundRateRateSpin;
+    QComboBox* combos[NUM_COMBOS];
+    QLineEdit* lines[NUM_LINES];
+    QDoubleSpinBox* spins[NUM_SPINS];
 
     QAction* showAct;
     bool showCommands;
@@ -106,12 +144,10 @@ public:
     QAction* debugAct;
     bool debugMode;
 
-    QPushButton* clrButton;
-    QPushButton* aplButton;
+    QPushButton* resetButton;
+    QPushButton* applyButton;
 
     ConfigDialog* config;
-
-    QHBoxLayout* makeSeparator(QString text);
 
     void onTCInitialize();
     void onTCClear();
@@ -134,36 +170,50 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 {
     self->setWindowTitle("QtcApp");
 
-    QMenu* fileMenu = self->menuBar()->addMenu(QObject::tr("&File"));
-    QMenu* editMenu = self->menuBar()->addMenu(QObject::tr("&Edit"));
-    QMenu* viewMenu = self->menuBar()->addMenu(QObject::tr("&View"));
-    QMenu* optionMenu = self->menuBar()->addMenu(QObject::tr("&Option"));
-    QMenu* helpMenu = self->menuBar()->addMenu(QObject::tr("&Help"));
+    QMenu* fileMenu = self->menuBar()->addMenu("&File");
+    QMenu* editMenu = self->menuBar()->addMenu("&Edit");
+    QMenu* viewMenu = self->menuBar()->addMenu("&View");
+    QMenu* optionMenu = self->menuBar()->addMenu("&Option");
+    QMenu* helpMenu = self->menuBar()->addMenu("&Help");
 
-    showAct = new QAction(QObject::tr("Show commands"));
+    QAction* quitAct = new QAction("Quit");
+    fileMenu->addAction(quitAct);
+
+    showAct = new QAction("Show commands");
     showAct->setCheckable(true);
     showAct->setChecked(false);
     editMenu->addAction(showAct);
     showCommands = false;
 
-    settingAct = new QAction(QObject::tr("Advanced settings"));
+    settingAct = new QAction("Advanced settings");
     optionMenu->addAction(settingAct);
-    debugAct = new QAction(QObject::tr("Debug mode"));
+    debugAct = new QAction("Debug mode");
     debugAct->setCheckable(true);
     debugAct->setChecked(false);
     optionMenu->addAction(debugAct);
     debugMode = false;
 
-    QAction* quitAct = new QAction(QObject::tr("Quit"));
-    fileMenu->addAction(quitAct);
-
     config = new ConfigDialog();
 
-    // Basic Tab
-    QWidget* bswidget = new QWidget();
-    QVBoxLayout* bsvbox = new QVBoxLayout();
-    ifcCombo = new QComboBox();
+    QGridLayout* gbox = new QGridLayout();
+    for(int i = 0; i < NUM_COMBOS; ++i) {
+        combos[i] = new QComboBox();
+        QComboBox* combo = combos[i];
+        ComboInfo info = comboInfo[i];
+        gbox->addWidget(new QLabel(info.label), info.row, info.cln - 1);
+        gbox->addWidget(combo, info.row, info.cln);
+    }
 
+    for(int i = 0; i < NUM_LINES; ++i) {
+        lines[i] = new QLineEdit();
+        QLineEdit* line = lines[i];
+        line->setText("0.0.0.0/0");
+        LineInfo info = lineInfo[i];
+        gbox->addWidget(new QLabel(info.label), info.row, info.cln - 1);
+        gbox->addWidget(line, info.row, info.cln);
+    }
+
+    QComboBox* ifcCombo = combos[IFC];
     struct ifreq ifr[IFR_MAX];
     struct ifconf ifc;
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -181,83 +231,46 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     ifcCombo->addItem("lo");
     ::close(fd);
 
-    ifbCombo = new QComboBox();
+    QComboBox* ifbCombo = combos[IFB];
     const QStringList items = { "ifb0", "ifb1" };
     ifbCombo->addItems(items);
 
-    srcLine = new QLineEdit();
-    srcLine->setText("0.0.0.0/0");
+    QGridLayout* bsgbox = new QGridLayout();
+    bsgbox->addWidget(new QLabel("Inbound"), 0, 1);
+    bsgbox->addWidget(new QLabel("Outbound"), 0, 2);
 
-    dstLine = new QLineEdit();
-    dstLine->setText("0.0.0.0/0");
+    QStringList labels = { "Dealy Time [ms]", "Loss Percent [%]", "Rate Rate [kbit/s]" };
+    for(int i = 0; i < 3; ++i) {
+        bsgbox->addWidget(new QLabel(labels[i]), i + 1, 0);
+    }
 
-    QGridLayout* sbox = new QGridLayout();
-    int stindex = 0;
-    sbox->addWidget(new QLabel(QObject::tr("Interface")), stindex, 0);
-    sbox->addWidget(ifcCombo, stindex, 1);
-    sbox->addWidget(new QLabel(QObject::tr("IFB")), stindex, 2);
-    sbox->addWidget(ifbCombo, stindex++, 3);
-    sbox->addWidget(new QLabel(QObject::tr("Source IP")), stindex, 0);
-    sbox->addWidget(srcLine, stindex, 1);
-    sbox->addWidget(new QLabel(QObject::tr("Destination IP")), stindex, 2);
-    sbox->addWidget(dstLine, stindex++, 3);
+    for(int i = 0; i < NUM_SPINS; ++i) {
+        spins[i] = new QDoubleSpinBox();
+        QDoubleSpinBox* spin = spins[i];
+        SpinInfo info = spinInfo[i];
+        spin->setRange(info.lower, info.upper);
+        spin->setValue(info.value);
+        bsgbox->addWidget(spin, info.row, info.cln);
+    }
 
-    inboundDelayTimeSpin = new QDoubleSpinBox();
-    inboundDelayTimeSpin->setRange(0.0, DELAY_MAX);
-    inboundLossPercentSpin = new QDoubleSpinBox();
-    inboundLossPercentSpin->setRange(0.0, LOSS_MAX);
-    inboundRateRateSpin = new QDoubleSpinBox();
-    inboundRateRateSpin->setRange(0.0, RATE_MAX);
+    resetButton = new QPushButton("Reset");
+    applyButton = new QPushButton("Apply");
+    applyButton->setCheckable(true);
+    bsgbox->addWidget(resetButton, 4, 1);
+    bsgbox->addWidget(applyButton, 4, 2);
 
-    outboundDelayTimeSpin = new QDoubleSpinBox();
-    outboundDelayTimeSpin->setRange(0.0, DELAY_MAX);
-    outboundLossPercentSpin = new QDoubleSpinBox();
-    outboundLossPercentSpin->setRange(0.0, LOSS_MAX);
-    outboundRateRateSpin = new QDoubleSpinBox();
-    outboundRateRateSpin->setRange(0.0, RATE_MAX);
-
-    QGridLayout* bsbox = new QGridLayout();
-    int bsindex = 0;
-    bsbox->addWidget(new QLabel(QObject::tr("Dealy Time [ms]")), bsindex, 0);
-    bsbox->addWidget(inboundDelayTimeSpin, bsindex, 1);
-    bsbox->addWidget(new QLabel(QObject::tr("Dealy Time [ms]")), bsindex, 2);
-    bsbox->addWidget(outboundDelayTimeSpin, bsindex++, 3);
-    bsbox->addWidget(new QLabel(QObject::tr("Loss Percent [%]")), bsindex, 0);
-    bsbox->addWidget(inboundLossPercentSpin, bsindex, 1);
-    bsbox->addWidget(new QLabel(QObject::tr("Loss Percent [%]")), bsindex, 2);
-    bsbox->addWidget(outboundLossPercentSpin, bsindex++, 3);
-    bsbox->addWidget(new QLabel(QObject::tr("Rate Rate [kbit/s]")), bsindex, 0);
-    bsbox->addWidget(inboundRateRateSpin, bsindex, 1);
-    bsbox->addWidget(new QLabel(QObject::tr("Rate Rate [kbit/s]")), bsindex, 2);
-    bsbox->addWidget(outboundRateRateSpin, bsindex++, 3);
-
-    QHBoxLayout* bshbox = new QHBoxLayout();
-    bshbox->addLayout(makeSeparator(QObject::tr("Inbound")));
-    bshbox->addLayout(makeSeparator(QObject::tr("Outbound")));
-
-    bsvbox->addLayout(sbox);
-    bsvbox->addLayout(bshbox);
-    bsvbox->addLayout(bsbox);
-    bsvbox->addStretch();
-    bswidget->setLayout(bsvbox);
-
-    QHBoxLayout* tbox = new QHBoxLayout();
-    clrButton = new QPushButton(QObject::tr("Clear"));
-    aplButton = new QPushButton(QObject::tr("Apply"));
-    aplButton->setCheckable(true);
-    tbox->addWidget(clrButton);
-    tbox->addWidget(aplButton);
-
-    QWidget* central = new QWidget();
+    QWidget* centralWidget = new QWidget();
     QVBoxLayout* vbox = new QVBoxLayout();
-    vbox->addWidget(bswidget);
-    vbox->addLayout(tbox);
-    central->setLayout(vbox);
+    vbox->addLayout(gbox);
+    QFrame* frame = new QFrame();
+    frame->setFrameShape(QFrame::HLine);
+    vbox->addWidget(frame);
+    vbox->addLayout(bsgbox);
+    centralWidget->setLayout(vbox);
+    self->setCentralWidget(centralWidget);
 
-    self->setCentralWidget(central);
-
-    self->connect(clrButton, SIGNAL(clicked()), self, SLOT(onClearButtonClicked()));
-    self->connect(aplButton, SIGNAL(toggled(bool)), self, SLOT(onApplyButtonToggled(bool)));
+    self->connect(resetButton, SIGNAL(clicked()), self, SLOT(onClearButtonClicked()));
+    self->connect(applyButton, SIGNAL(toggled(bool)), self, SLOT(onApplyButtonToggled(bool)));
     self->connect(showAct, SIGNAL(triggered(bool)), self, SLOT(onShowActionTriggered(bool)));
     self->connect(settingAct, SIGNAL(triggered(bool)), config, SLOT(show()));
     self->connect(debugAct, SIGNAL(triggered(bool)), self, SLOT(onDebugActionTriggered(bool)));
@@ -274,41 +287,19 @@ MainWindow::~MainWindow()
 }
 
 
-QHBoxLayout* MainWindowImpl::makeSeparator(QString text)
-{
-    QHBoxLayout* hbox = new QHBoxLayout();
-    QFrame* line0 = new QFrame();
-    line0->setFrameShape(QFrame::HLine);
-    QFrame* line1 = new QFrame();
-    line1->setFrameShape(QFrame::HLine);
-    QLabel* label = new QLabel(text);
-    label->setAlignment(Qt::AlignCenter);
-
-    if(!text.isEmpty()) {
-        hbox->addWidget(line0);
-        hbox->addWidget(label);
-        hbox->addWidget(line1);
-    } else {
-        hbox->addWidget(line0);
-    }
-
-    return hbox;
-}
-
-
 void MainWindow::onClearButtonClicked()
 {
-    impl->ifcCombo->setCurrentIndex(0);
-    impl->ifbCombo->setCurrentIndex(0);
-    impl->srcLine->setText("0.0.0.0/0");
-    impl->dstLine->setText("0.0.0.0/0");
+    for(int i = 0; i < MainWindowImpl::NUM_COMBOS; ++i) {
+        impl->combos[i]->setCurrentIndex(0);
+    }
 
-    impl->inboundDelayTimeSpin->setValue(0.0);
-    impl->inboundLossPercentSpin->setValue(0.0);
-    impl->inboundRateRateSpin->setValue(0.0);
-    impl->outboundDelayTimeSpin->setValue(0.0);
-    impl->outboundLossPercentSpin->setValue(0.0);
-    impl->outboundRateRateSpin->setValue(0.0);
+    for(int i = 0; i < MainWindowImpl::NUM_LINES; ++i) {
+        impl->lines[i]->setText("0.0.0.0/0");
+    }
+
+    for(int i = 0; i < MainWindowImpl::NUM_SPINS; ++i) {
+        impl->spins[i]->setValue(0.0);
+    }
 }
 
 
@@ -322,9 +313,9 @@ void MainWindow::onApplyButtonToggled(const bool& on)
     } else {
         impl->onTCClear();
     }
-    impl->ifcCombo->setEnabled(!on);
-    impl->ifbCombo->setEnabled(!on);
-    impl->aplButton->setPalette(palette);
+    impl->combos[MainWindowImpl::IFC]->setEnabled(!on);
+    impl->combos[MainWindowImpl::IFB]->setEnabled(!on);
+    impl->applyButton->setPalette(palette);
 }
 
 
@@ -349,7 +340,7 @@ void MainWindow::onCurrentIFBChanged(QString ifbName)
 
 void MainWindowImpl::onTCInitialize()
 {
-    string ifbName = ifbCombo->currentText().toStdString();
+    string ifbName = combos[IFB]->currentText().toStdString();
     string message = (boost::format("sudo modprobe ifb;"
                                     "sudo modprobe act_mirred;"
                                     "sudo ip link set dev %s up;")
@@ -360,8 +351,8 @@ void MainWindowImpl::onTCInitialize()
 
 void MainWindowImpl::onTCClear()
 {
-    string ifcName = ifcCombo->currentText().toStdString();
-    string ifbName = ifbCombo->currentText().toStdString();
+    string ifcName = combos[IFC]->currentText().toStdString();
+    string ifbName = combos[IFB]->currentText().toStdString();
     string message = (boost::format("sudo tc qdisc del dev %s ingress;"
                                     "sudo tc qdisc del dev %s root;"
                                     "sudo tc qdisc del dev %s root;")
@@ -375,7 +366,7 @@ void MainWindowImpl::onTCClear()
 
 void MainWindowImpl::onTCFinalize()
 {
-    string ifbName = ifbCombo->currentText().toStdString();
+    string ifbName = combos[IFB]->currentText().toStdString();
     string message = (boost::format("sudo ip link set dev %s down;"
                                     "sudo rmmod ifb;")
                 % ifbName.c_str()
@@ -386,16 +377,16 @@ void MainWindowImpl::onTCFinalize()
 
 void MainWindowImpl::onTCExecute()
 {
-    string ifcName = ifcCombo->currentText().toStdString();
-    string ifbName = ifbCombo->currentText().toStdString();
+    string ifcName = combos[IFC]->currentText().toStdString();
+    string ifbName = combos[IFB]->currentText().toStdString();
 
     if(ifcName.empty()) {
         return;
     }
 
-    double inboundDelayTime = inboundDelayTimeSpin->value();
-    double inboundLossPercent = inboundLossPercentSpin->value();
-    double inboundRateRate = inboundRateRateSpin->value();
+    double inboundDelayTime = spins[IN_DLY_TIM]->value();
+    double inboundLossPercent = spins[IN_LOS_PCT]->value();
+    double inboundRateRate = spins[IN_RAT_RAT]->value();
 
     double inboundLimitPackets = config->spin(ConfigDialog::IN_LMT_PKT);
     double inboundDelayJitter = config->spin(ConfigDialog::IN_DLY_JTR);
@@ -441,9 +432,9 @@ void MainWindowImpl::onTCExecute()
         inboundSlotDistribution = item.toStdString();
     }
 
-    double outboundDelayTime = outboundDelayTimeSpin->value();
-    double outboundLossPercent = outboundLossPercentSpin->value();
-    double outboundRateRate = outboundRateRateSpin->value();
+    double outboundDelayTime = spins[OUT_DLY_TIM]->value();
+    double outboundLossPercent = spins[OUT_LOS_PCT]->value();
+    double outboundRateRate = spins[OUT_RAT_RAT]->value();
 
     double outboundLimitPackets = config->spin(ConfigDialog::OUT_LMT_PKT);
     double outboundDelayJitter = config->spin(ConfigDialog::OUT_DLY_JTR);
@@ -639,8 +630,8 @@ void MainWindowImpl::onTCExecute()
         }
     }
 
-    string srcipName = srcLine->text().toStdString();
-    string dstipName = dstLine->text().toStdString();
+    string srcipName = lines[SRC]->text().toStdString();
+    string dstipName = lines[DST]->text().toStdString();
     if(!addressCheck(srcipName)) {
         srcipName = "0.0.0.0/0";
     }
