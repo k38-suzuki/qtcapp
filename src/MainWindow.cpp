@@ -7,7 +7,6 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
-#include <QFrame>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -45,6 +44,7 @@ vector<string> split(const string& s, char delim)
     return elements;
 }
 
+
 bool addressCheck(const std::string& address)
 {
     vector<string> ip_mask = split(address, '/');
@@ -73,6 +73,22 @@ bool addressCheck(const std::string& address)
     }
     return true;
 }
+
+
+struct ActionInfo {
+    QString label;
+    bool checkable;
+    bool checked;
+    int menu;
+};
+
+
+ActionInfo actionInfo[] = {
+    { "Quit",              false, false,   MainWindow::FILE },
+    { "Show commands",      true, false,   MainWindow::EDIT },
+    { "Advanced settings", false, false, MainWindow::OPTION },
+    { "Debug mode",         true, false, MainWindow::OPTION }
+};
 
 
 struct ComboInfo {
@@ -125,23 +141,13 @@ public:
     MainWindowImpl(MainWindow* self);
     MainWindow* self;
 
-    enum ComboId { IFC, IFB, NUM_COMBOS };
-    enum LineId { SRC, DST, NUM_LINES };
-    enum SpinId {
-        IN_DLY_TIM, OUT_DLY_TIM,
-        IN_LOS_PCT, OUT_LOS_PCT,
-        IN_RAT_RAT, OUT_RAT_RAT,
-        NUM_SPINS
-    };
+    QMenu* menus[MainWindow::NUM_MENUS];
+    QAction* actions[MainWindow::NUM_ACTIONS];
+    QComboBox* combos[MainWindow::NUM_COMBOS];
+    QLineEdit* lines[MainWindow::NUM_LINES];
+    QDoubleSpinBox* spins[MainWindow::NUM_SPINS];
 
-    QComboBox* combos[NUM_COMBOS];
-    QLineEdit* lines[NUM_LINES];
-    QDoubleSpinBox* spins[NUM_SPINS];
-
-    QAction* showAct;
     bool showCommands;
-    QAction* settingAct;
-    QAction* debugAct;
     bool debugMode;
 
     QPushButton* resetButton;
@@ -170,33 +176,27 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 {
     self->setWindowTitle("QtcApp");
 
-    QMenu* fileMenu = self->menuBar()->addMenu("&File");
-    QMenu* editMenu = self->menuBar()->addMenu("&Edit");
-    QMenu* viewMenu = self->menuBar()->addMenu("&View");
-    QMenu* optionMenu = self->menuBar()->addMenu("&Option");
-    QMenu* helpMenu = self->menuBar()->addMenu("&Help");
+    QStringList topMenus ={ "&File", "&Edit", "&View", "&Option", "&Help" };
+    for(int i = 0; i < MainWindow::NUM_MENUS; ++i) {
+        menus[i] = self->menuBar()->addMenu(topMenus[i]);
+    }
 
-    QAction* quitAct = new QAction("Quit");
-    fileMenu->addAction(quitAct);
+    for(int i = 0; i < MainWindow::NUM_ACTIONS; ++i) {
+        ActionInfo info = actionInfo[i];
+        actions[i] = new QAction(info.label);
+        QAction* action = actions[i];
+        action->setCheckable(info.checkable);
+        action->setChecked(info.checked);
+        menus[info.menu]->addAction(action);
+    }
 
-    showAct = new QAction("Show commands");
-    showAct->setCheckable(true);
-    showAct->setChecked(false);
-    editMenu->addAction(showAct);
     showCommands = false;
-
-    settingAct = new QAction("Advanced settings");
-    optionMenu->addAction(settingAct);
-    debugAct = new QAction("Debug mode");
-    debugAct->setCheckable(true);
-    debugAct->setChecked(false);
-    optionMenu->addAction(debugAct);
     debugMode = false;
 
     config = new ConfigDialog();
 
     QGridLayout* gbox = new QGridLayout();
-    for(int i = 0; i < NUM_COMBOS; ++i) {
+    for(int i = 0; i < MainWindow::NUM_COMBOS; ++i) {
         combos[i] = new QComboBox();
         QComboBox* combo = combos[i];
         ComboInfo info = comboInfo[i];
@@ -204,7 +204,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
         gbox->addWidget(combo, info.row, info.cln);
     }
 
-    for(int i = 0; i < NUM_LINES; ++i) {
+    for(int i = 0; i < MainWindow::NUM_LINES; ++i) {
         lines[i] = new QLineEdit();
         QLineEdit* line = lines[i];
         line->setText("0.0.0.0/0");
@@ -213,7 +213,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
         gbox->addWidget(line, info.row, info.cln);
     }
 
-    QComboBox* ifcCombo = combos[IFC];
+    QComboBox* ifcCombo = combos[MainWindow::IFC];
     struct ifreq ifr[IFR_MAX];
     struct ifconf ifc;
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -231,7 +231,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     ifcCombo->addItem("lo");
     ::close(fd);
 
-    QComboBox* ifbCombo = combos[IFB];
+    QComboBox* ifbCombo = combos[MainWindow::IFB];
     const QStringList items = { "ifb0", "ifb1" };
     ifbCombo->addItems(items);
 
@@ -244,7 +244,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
         bsgbox->addWidget(new QLabel(labels[i]), i + 1, 0);
     }
 
-    for(int i = 0; i < NUM_SPINS; ++i) {
+    for(int i = 0; i < MainWindow::NUM_SPINS; ++i) {
         spins[i] = new QDoubleSpinBox();
         QDoubleSpinBox* spin = spins[i];
         SpinInfo info = spinInfo[i];
@@ -262,21 +262,19 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     QWidget* centralWidget = new QWidget();
     QVBoxLayout* vbox = new QVBoxLayout();
     vbox->addLayout(gbox);
-    QFrame* frame = new QFrame();
-    frame->setFrameShape(QFrame::HLine);
-    vbox->addWidget(frame);
+    vbox->addSpacing(10);
     vbox->addLayout(bsgbox);
     centralWidget->setLayout(vbox);
     self->setCentralWidget(centralWidget);
 
     self->connect(resetButton, SIGNAL(clicked()), self, SLOT(onClearButtonClicked()));
     self->connect(applyButton, SIGNAL(toggled(bool)), self, SLOT(onApplyButtonToggled(bool)));
-    self->connect(showAct, SIGNAL(triggered(bool)), self, SLOT(onShowActionTriggered(bool)));
-    self->connect(settingAct, SIGNAL(triggered(bool)), config, SLOT(show()));
-    self->connect(debugAct, SIGNAL(triggered(bool)), self, SLOT(onDebugActionTriggered(bool)));
-    self->connect(debugAct, SIGNAL(triggered(bool)), showAct, SLOT(setChecked(bool)));
+    self->connect(actions[MainWindow::SHOW], SIGNAL(triggered(bool)), self, SLOT(onShowActionTriggered(bool)));
+    self->connect(actions[MainWindow::SETTING], SIGNAL(triggered(bool)), config, SLOT(show()));
+    self->connect(actions[MainWindow::DEBUG], SIGNAL(triggered(bool)), self, SLOT(onDebugActionTriggered(bool)));
+    self->connect(actions[MainWindow::DEBUG], SIGNAL(triggered(bool)), actions[MainWindow::SHOW], SLOT(setChecked(bool)));
     self->connect(ifbCombo, SIGNAL(currentTextChanged(QString)), self, SLOT(onCurrentIFBChanged(QString)));
-    self->connect(quitAct, SIGNAL(triggered()), self, SLOT(close()));
+    self->connect(actions[MainWindow::QUIT], SIGNAL(triggered()), self, SLOT(close()));
 }
 
 
@@ -289,15 +287,15 @@ MainWindow::~MainWindow()
 
 void MainWindow::onClearButtonClicked()
 {
-    for(int i = 0; i < MainWindowImpl::NUM_COMBOS; ++i) {
+    for(int i = 0; i < MainWindow::NUM_COMBOS; ++i) {
         impl->combos[i]->setCurrentIndex(0);
     }
 
-    for(int i = 0; i < MainWindowImpl::NUM_LINES; ++i) {
+    for(int i = 0; i < MainWindow::NUM_LINES; ++i) {
         impl->lines[i]->setText("0.0.0.0/0");
     }
 
-    for(int i = 0; i < MainWindowImpl::NUM_SPINS; ++i) {
+    for(int i = 0; i < MainWindow::NUM_SPINS; ++i) {
         impl->spins[i]->setValue(0.0);
     }
 }
@@ -313,8 +311,8 @@ void MainWindow::onApplyButtonToggled(const bool& on)
     } else {
         impl->onTCClear();
     }
-    impl->combos[MainWindowImpl::IFC]->setEnabled(!on);
-    impl->combos[MainWindowImpl::IFB]->setEnabled(!on);
+    impl->combos[MainWindow::IFC]->setEnabled(!on);
+    impl->combos[MainWindow::IFB]->setEnabled(!on);
     impl->applyButton->setPalette(palette);
 }
 
@@ -340,7 +338,7 @@ void MainWindow::onCurrentIFBChanged(QString ifbName)
 
 void MainWindowImpl::onTCInitialize()
 {
-    string ifbName = combos[IFB]->currentText().toStdString();
+    string ifbName = combos[MainWindow::IFB]->currentText().toStdString();
     string message = (boost::format("sudo modprobe ifb;"
                                     "sudo modprobe act_mirred;"
                                     "sudo ip link set dev %s up;")
@@ -351,8 +349,8 @@ void MainWindowImpl::onTCInitialize()
 
 void MainWindowImpl::onTCClear()
 {
-    string ifcName = combos[IFC]->currentText().toStdString();
-    string ifbName = combos[IFB]->currentText().toStdString();
+    string ifcName = combos[MainWindow::IFC]->currentText().toStdString();
+    string ifbName = combos[MainWindow::IFB]->currentText().toStdString();
     string message = (boost::format("sudo tc qdisc del dev %s ingress;"
                                     "sudo tc qdisc del dev %s root;"
                                     "sudo tc qdisc del dev %s root;")
@@ -366,7 +364,7 @@ void MainWindowImpl::onTCClear()
 
 void MainWindowImpl::onTCFinalize()
 {
-    string ifbName = combos[IFB]->currentText().toStdString();
+    string ifbName = combos[MainWindow::IFB]->currentText().toStdString();
     string message = (boost::format("sudo ip link set dev %s down;"
                                     "sudo rmmod ifb;")
                 % ifbName.c_str()
@@ -377,16 +375,16 @@ void MainWindowImpl::onTCFinalize()
 
 void MainWindowImpl::onTCExecute()
 {
-    string ifcName = combos[IFC]->currentText().toStdString();
-    string ifbName = combos[IFB]->currentText().toStdString();
+    string ifcName = combos[MainWindow::IFC]->currentText().toStdString();
+    string ifbName = combos[MainWindow::IFB]->currentText().toStdString();
 
     if(ifcName.empty()) {
         return;
     }
 
-    double inboundDelayTime = spins[IN_DLY_TIM]->value();
-    double inboundLossPercent = spins[IN_LOS_PCT]->value();
-    double inboundRateRate = spins[IN_RAT_RAT]->value();
+    double inboundDelayTime = spins[MainWindow::IN_DLY_TIM]->value();
+    double inboundLossPercent = spins[MainWindow::IN_LOS_PCT]->value();
+    double inboundRateRate = spins[MainWindow::IN_RAT_RAT]->value();
 
     double inboundLimitPackets = config->spin(ConfigDialog::IN_LMT_PKT);
     double inboundDelayJitter = config->spin(ConfigDialog::IN_DLY_JTR);
@@ -429,9 +427,9 @@ void MainWindowImpl::onTCExecute()
         inboundSlotDistribution = item.toStdString();
     }
 
-    double outboundDelayTime = spins[OUT_DLY_TIM]->value();
-    double outboundLossPercent = spins[OUT_LOS_PCT]->value();
-    double outboundRateRate = spins[OUT_RAT_RAT]->value();
+    double outboundDelayTime = spins[MainWindow::OUT_DLY_TIM]->value();
+    double outboundLossPercent = spins[MainWindow::OUT_LOS_PCT]->value();
+    double outboundRateRate = spins[MainWindow::OUT_RAT_RAT]->value();
 
     double outboundLimitPackets = config->spin(ConfigDialog::OUT_LMT_PKT);
     double outboundDelayJitter = config->spin(ConfigDialog::OUT_DLY_JTR);
@@ -627,8 +625,8 @@ void MainWindowImpl::onTCExecute()
         }
     }
 
-    string srcipName = lines[SRC]->text().toStdString();
-    string dstipName = lines[DST]->text().toStdString();
+    string srcipName = lines[MainWindow::SRC]->text().toStdString();
+    string dstipName = lines[MainWindow::DST]->text().toStdString();
     if(!addressCheck(srcipName)) {
         srcipName = "0.0.0.0/0";
     }
