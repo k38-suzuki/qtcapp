@@ -7,6 +7,8 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
+#include <QFileDialog>
+#include <QFileInfo>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -84,6 +86,8 @@ struct ActionInfo {
 
 
 ActionInfo actionInfo[] = {
+    { "Import",            false, false,   MainWindow::FILE },
+    { "Export",            false, false,   MainWindow::FILE },
     { "Quit",              false, false,   MainWindow::FILE },
     { "Show commands",      true, false,   MainWindow::EDIT },
     { "Advanced settings", false, false, MainWindow::OPTION },
@@ -269,12 +273,13 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 
     self->connect(resetButton, SIGNAL(clicked()), self, SLOT(onClearButtonClicked()));
     self->connect(applyButton, SIGNAL(toggled(bool)), self, SLOT(onApplyButtonToggled(bool)));
+    self->connect(actions[MainWindow::QUIT], SIGNAL(triggered()), self, SLOT(close()));
+    self->connect(actions[MainWindow::IMPORT], SIGNAL(triggered(bool)), self, SLOT(onImportActionTriggered(bool)));
+    self->connect(actions[MainWindow::EXPORT], SIGNAL(triggered(bool)), self, SLOT(onExportActionTriggered(bool)));
     self->connect(actions[MainWindow::SHOW], SIGNAL(triggered(bool)), self, SLOT(onShowActionTriggered(bool)));
     self->connect(actions[MainWindow::SETTING], SIGNAL(triggered(bool)), config, SLOT(show()));
     self->connect(actions[MainWindow::DEBUG], SIGNAL(triggered(bool)), self, SLOT(onDebugActionTriggered(bool)));
-    self->connect(actions[MainWindow::DEBUG], SIGNAL(triggered(bool)), actions[MainWindow::SHOW], SLOT(setChecked(bool)));
     self->connect(ifbCombo, SIGNAL(currentTextChanged(QString)), self, SLOT(onCurrentIFBChanged(QString)));
-    self->connect(actions[MainWindow::QUIT], SIGNAL(triggered()), self, SLOT(close()));
 }
 
 
@@ -314,6 +319,65 @@ void MainWindow::onApplyButtonToggled(const bool& on)
     impl->combos[MainWindow::IFC]->setEnabled(!on);
     impl->combos[MainWindow::IFB]->setEnabled(!on);
     impl->applyButton->setPalette(palette);
+}
+
+
+void MainWindow::onImportActionTriggered(const bool& on)
+{
+    QFileDialog dialog(this);
+    dialog.setWindowTitle("Open a configuration file");
+    dialog.setFileMode(QFileDialog::ExistingFile);
+    dialog.setViewMode(QFileDialog::List);
+    dialog.setLabelText(QFileDialog::Accept, "Open");
+    dialog.setLabelText(QFileDialog::Reject, "Cancel");
+    dialog.setOption(QFileDialog::DontUseNativeDialog);
+
+    QStringList filters;
+    filters << "YAML files (*.yaml *.yml)";
+    filters << "Any files (*)";
+    dialog.setNameFilters(filters);
+
+    QString filename;
+    if(dialog.exec()) {
+        filename = dialog.selectedFiles().front();
+    }
+
+    if(!filename.isEmpty()) {
+
+    }
+}
+
+
+void MainWindow::onExportActionTriggered(const bool& on)
+{
+    QFileDialog dialog(this);
+    dialog.setWindowTitle("Save a configuration file");
+    dialog.setFileMode(QFileDialog::AnyFile);
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    dialog.setViewMode(QFileDialog::List);
+    dialog.setLabelText(QFileDialog::Accept, "Save");
+    dialog.setLabelText(QFileDialog::Reject, "Cancel");
+//    dialog.setOption(QFileDialog::DontConfirmOverwrite);
+    dialog.setOption(QFileDialog::DontUseNativeDialog);
+
+    QStringList filters;
+    filters << "YAML files (*.yaml *.yml)";
+    filters << "Any files (*)";
+    dialog.setNameFilters(filters);
+
+    QString filename;
+    if(dialog.exec() == QDialog::Accepted) {
+        filename = dialog.selectedFiles().front();
+        QFileInfo info(filename);
+        QString suffix = info.suffix();
+        if(suffix.isEmpty()) {
+            filename += ".yaml";
+        }
+    }
+
+    if(!filename.isEmpty()) {
+
+    }
 }
 
 
