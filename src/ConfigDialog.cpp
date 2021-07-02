@@ -149,9 +149,21 @@ ConfigDialog::~ConfigDialog()
 }
 
 
+void ConfigDialog::setValue(const int& index, const double& value)
+{
+    impl->spins[index]->setValue(value);
+}
+
+
 double ConfigDialog::spin(const int& index) const
 {
     return impl->spins[index]->value();
+}
+
+
+void ConfigDialog::setText(const int &index, const QString text)
+{
+    impl->combos[index]->setCurrentText(text);
 }
 
 

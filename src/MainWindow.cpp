@@ -6,7 +6,9 @@
 #include "MainWindow.h"
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDebug>
 #include <QDoubleSpinBox>
+#include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QGridLayout>
@@ -17,6 +19,7 @@
 #include <QPalette>
 #include <QProcess>
 #include <QPushButton>
+#include <QTextStream>
 #include <QVBoxLayout>
 #include <boost/format.hpp>
 #include <sstream>
@@ -333,7 +336,7 @@ void MainWindow::onImportActionTriggered(const bool& on)
     dialog.setOption(QFileDialog::DontUseNativeDialog);
 
     QStringList filters;
-    filters << "YAML files (*.yaml *.yml)";
+    filters << "QTC files (*.qtc)";
     filters << "Any files (*)";
     dialog.setNameFilters(filters);
 
@@ -343,7 +346,29 @@ void MainWindow::onImportActionTriggered(const bool& on)
     }
 
     if(!filename.isEmpty()) {
+        QFile file(filename);
+        if(file.open(QIODevice::ReadOnly)) {
+            QTextStream in(&file);
+            for(int i = 0; i < NUM_COMBOS; ++i) {
+                impl->combos[i]->setCurrentText(in.readLine());
+            }
 
+            for(int i = 0; i < NUM_LINES; ++i) {
+                impl->lines[i]->setText(in.readLine());
+            }
+
+            for(int i = 0; i < NUM_SPINS; ++i) {
+                impl->spins[i]->setValue(in.readLine().toDouble());
+            }
+
+            for(int i = 0; i < ConfigDialog::NUM_SPINS; ++i) {
+                impl->config->setValue(i, in.readLine().toDouble());
+            }
+
+            for(int i = 0; i < ConfigDialog::NUM_COMBOS; ++i) {
+                impl->config->setText(i, in.readLine());
+            }
+        }
     }
 }
 
@@ -361,7 +386,7 @@ void MainWindow::onExportActionTriggered(const bool& on)
     dialog.setOption(QFileDialog::DontUseNativeDialog);
 
     QStringList filters;
-    filters << "YAML files (*.yaml *.yml)";
+    filters << "QTC files (*.qtc)";
     filters << "Any files (*)";
     dialog.setNameFilters(filters);
 
@@ -376,7 +401,35 @@ void MainWindow::onExportActionTriggered(const bool& on)
     }
 
     if(!filename.isEmpty()) {
+        QFile file(filename);
+        if(file.open(QIODevice::WriteOnly)) {
+            QTextStream out(&file);
+            for(int i = 0; i < NUM_COMBOS; ++i) {
+                QComboBox* combo = impl->combos[i];
+                out << combo->currentText() << endl;
+            }
 
+            for(int i = 0; i < NUM_LINES; ++i) {
+                QLineEdit* line = impl->lines[i];
+                out << line->text() << endl;
+            }
+
+            for(int i = 0; i < NUM_SPINS; ++i) {
+                QDoubleSpinBox* spin = impl->spins[i];
+                out << spin->value() << endl;
+            }
+
+            for(int i = 0; i < ConfigDialog::NUM_SPINS; ++i) {
+                double value  = impl->config->spin(i);
+                out << value << endl;
+            }
+
+            for(int i = 0; i < ConfigDialog::NUM_COMBOS; ++i) {
+                QString text = impl->config->combo(i);
+                out << text << endl;
+            }
+            file.close();
+        }
     }
 }
 

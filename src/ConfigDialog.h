@@ -45,7 +45,9 @@ public:
         NUM_COMBOS
     };
 
+    void setValue(const int& index, const double& value);
     double spin(const int& index) const;
+    void setText(const int& index, const QString text);
     QString combo(const int& index) const;
 
 private:
