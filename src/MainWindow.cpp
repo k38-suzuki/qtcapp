@@ -27,7 +27,6 @@
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
-#include <iostream>
 #include "ConfigDialog.h"
 
 #define IFR_MAX 10
@@ -93,7 +92,6 @@ ActionInfo actionInfo[] = {
     { "Export",            false, false,   MainWindow::FILE },
     { "Quit",              false, false,   MainWindow::FILE },
     { "Advanced settings", false, false, MainWindow::OPTION },
-    { "Show commands",      true, false, MainWindow::OPTION },
     { "Debug mode",         true, false, MainWindow::OPTION }
 };
 
@@ -154,7 +152,6 @@ public:
     QLineEdit* lines[MainWindow::NUM_LINES];
     QDoubleSpinBox* spins[MainWindow::NUM_SPINS];
 
-    bool showCommands;
     bool debugMode;
 
     QPushButton* resetButton;
@@ -197,7 +194,6 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
         menus[info.menu]->addAction(action);
     }
 
-    showCommands = false;
     debugMode = false;
 
     config = new ConfigDialog();
@@ -279,7 +275,6 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     self->connect(actions[MainWindow::QUIT], SIGNAL(triggered()), self, SLOT(close()));
     self->connect(actions[MainWindow::IMPORT], SIGNAL(triggered(bool)), self, SLOT(onImportActionTriggered(bool)));
     self->connect(actions[MainWindow::EXPORT], SIGNAL(triggered(bool)), self, SLOT(onExportActionTriggered(bool)));
-    self->connect(actions[MainWindow::SHOW], SIGNAL(triggered(bool)), self, SLOT(onShowActionTriggered(bool)));
     self->connect(actions[MainWindow::SETTING], SIGNAL(triggered(bool)), config, SLOT(show()));
     self->connect(actions[MainWindow::DEBUG], SIGNAL(triggered(bool)), self, SLOT(onDebugActionTriggered(bool)));
     self->connect(ifbCombo, SIGNAL(currentTextChanged(QString)), self, SLOT(onCurrentIFBChanged(QString)));
@@ -445,16 +440,9 @@ void MainWindow::onExportActionTriggered(const bool& on)
 }
 
 
-void MainWindow::onShowActionTriggered(const bool& on)
-{
-    impl->showCommands = on;
-}
-
-
 void MainWindow::onDebugActionTriggered(const bool& on)
 {
     impl->debugMode = on;
-    impl->showCommands = on;
 }
 
 
@@ -812,9 +800,8 @@ void MainWindowImpl::onCommandExecute(const string& message)
         QString command = QString::fromStdString(commands[i]);
         if(!debugMode) {
             QProcess::execute(command);
-        }
-        if(showCommands) {
-            cout << command.toStdString() << endl;
+        } else {
+            qDebug() << command;
         }
     }
 }

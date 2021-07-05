@@ -26,8 +26,7 @@ public:
 
     enum ActionId {
         IMPORT, EXPORT, QUIT,
-        SETTING, SHOW, DEBUG,
-        NUM_ACTIONS
+        SETTING, DEBUG, NUM_ACTIONS
     };
 
     enum ComboId { IFC, IFB, NUM_COMBOS };
@@ -52,7 +51,6 @@ public Q_SLOTS:
     void onApplyButtonToggled(const bool& on);
     void onImportActionTriggered(const bool& on);
     void onExportActionTriggered(const bool& on);
-    void onShowActionTriggered(const bool& on);
     void onDebugActionTriggered(const bool& on);
     void onCurrentIFBChanged(QString ifbName);
 };
