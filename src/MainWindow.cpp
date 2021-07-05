@@ -293,6 +293,42 @@ MainWindow::~MainWindow()
 }
 
 
+void MainWindow::onImportFile(QString filename)
+{
+    QFileInfo info(filename);
+    QString suffix = info.suffix();
+    if(suffix.isEmpty()) {
+        filename.clear();
+    }
+
+    if(!filename.isEmpty()) {
+        QFile file(filename);
+        if(file.open(QIODevice::ReadOnly)) {
+            QTextStream in(&file);
+            for(int i = 0; i < NUM_COMBOS; ++i) {
+                impl->combos[i]->setCurrentText(in.readLine());
+            }
+
+            for(int i = 0; i < NUM_LINES; ++i) {
+                impl->lines[i]->setText(in.readLine());
+            }
+
+            for(int i = 0; i < NUM_SPINS; ++i) {
+                impl->spins[i]->setValue(in.readLine().toDouble());
+            }
+
+            for(int i = 0; i < ConfigDialog::NUM_SPINS; ++i) {
+                impl->config->setValue(i, in.readLine().toDouble());
+            }
+
+            for(int i = 0; i < ConfigDialog::NUM_COMBOS; ++i) {
+                impl->config->setText(i, in.readLine());
+            }
+        }
+    }
+}
+
+
 void MainWindow::onClearButtonClicked()
 {
     for(int i = 0; i < MainWindow::NUM_COMBOS; ++i) {
@@ -337,38 +373,13 @@ void MainWindow::onImportActionTriggered(const bool& on)
 
     QStringList filters;
     filters << "QTC files (*.qtc)";
-    filters << "Any files (*)";
+//    filters << "Any files (*)";
     dialog.setNameFilters(filters);
 
     QString filename;
     if(dialog.exec()) {
         filename = dialog.selectedFiles().front();
-    }
-
-    if(!filename.isEmpty()) {
-        QFile file(filename);
-        if(file.open(QIODevice::ReadOnly)) {
-            QTextStream in(&file);
-            for(int i = 0; i < NUM_COMBOS; ++i) {
-                impl->combos[i]->setCurrentText(in.readLine());
-            }
-
-            for(int i = 0; i < NUM_LINES; ++i) {
-                impl->lines[i]->setText(in.readLine());
-            }
-
-            for(int i = 0; i < NUM_SPINS; ++i) {
-                impl->spins[i]->setValue(in.readLine().toDouble());
-            }
-
-            for(int i = 0; i < ConfigDialog::NUM_SPINS; ++i) {
-                impl->config->setValue(i, in.readLine().toDouble());
-            }
-
-            for(int i = 0; i < ConfigDialog::NUM_COMBOS; ++i) {
-                impl->config->setText(i, in.readLine());
-            }
-        }
+        onImportFile(filename);
     }
 }
 
@@ -387,7 +398,7 @@ void MainWindow::onExportActionTriggered(const bool& on)
 
     QStringList filters;
     filters << "QTC files (*.qtc)";
-    filters << "Any files (*)";
+//    filters << "Any files (*)";
     dialog.setNameFilters(filters);
 
     QString filename;
@@ -396,7 +407,7 @@ void MainWindow::onExportActionTriggered(const bool& on)
         QFileInfo info(filename);
         QString suffix = info.suffix();
         if(suffix.isEmpty()) {
-            filename += ".yaml";
+            filename += ".qtc";
         }
     }
 

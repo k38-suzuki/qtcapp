@@ -41,6 +41,8 @@ public:
         NUM_SPINS
     };
 
+    void onImportFile(QString filename);
+
 private:
     MainWindowImpl* impl;
     friend class MainWindowImpl;
