@@ -92,8 +92,8 @@ ActionInfo actionInfo[] = {
     { "Import",            false, false,   MainWindow::FILE },
     { "Export",            false, false,   MainWindow::FILE },
     { "Quit",              false, false,   MainWindow::FILE },
-    { "Show commands",      true, false,   MainWindow::EDIT },
     { "Advanced settings", false, false, MainWindow::OPTION },
+    { "Show commands",      true, false, MainWindow::OPTION },
     { "Debug mode",         true, false, MainWindow::OPTION }
 };
 

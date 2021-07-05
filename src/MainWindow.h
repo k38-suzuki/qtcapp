@@ -26,7 +26,7 @@ public:
 
     enum ActionId {
         IMPORT, EXPORT, QUIT,
-        SHOW, SETTING, DEBUG,
+        SETTING, SHOW, DEBUG,
         NUM_ACTIONS
     };
 
