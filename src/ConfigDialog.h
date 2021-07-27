@@ -35,7 +35,7 @@ public:
         IN_RCL_OVH, OUT_RCL_OVH,
         IN_SLT_MND, OUT_SLT_MND,
         IN_SLT_MXD, OUT_SLT_MXD,
-        NUM_SPINS
+        NUM_DSPINS
     };
 
     enum ComboId {

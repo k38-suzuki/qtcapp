@@ -37,7 +37,7 @@ public:
         IN_DLY_TIM, OUT_DLY_TIM,
         IN_LOS_PCT, OUT_LOS_PCT,
         IN_RAT_RAT, OUT_RAT_RAT,
-        NUM_SPINS
+        NUM_DSPINS
     };
 
     void onImportFile(QString filename);

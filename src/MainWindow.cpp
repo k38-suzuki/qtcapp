@@ -122,7 +122,7 @@ LineInfo lineInfo[] = {
 };
 
 
-struct SpinInfo {
+struct DoubleSpinInfo {
     int row;
     int cln;
     double lower;
@@ -131,7 +131,7 @@ struct SpinInfo {
 };
 
 
-SpinInfo spinInfo[] = {
+DoubleSpinInfo doublespinInfo[] = {
     { 1, 1, 0.0,   100000.0, 0.0 }, { 1, 2, 0.0,   100000.0, 0.0 },
     { 2, 1, 0.0,      100.0, 0.0 }, { 2, 2, 0.0,      100.0, 0.0 },
     { 3, 1, 0.0, 11000000.0, 0.0 }, { 3, 2, 0.0, 11000000.0, 0.0 },
@@ -150,7 +150,7 @@ public:
     QAction* actions[MainWindow::NUM_ACTIONS];
     QComboBox* combos[MainWindow::NUM_COMBOS];
     QLineEdit* lines[MainWindow::NUM_LINES];
-    QDoubleSpinBox* spins[MainWindow::NUM_SPINS];
+    QDoubleSpinBox* dspins[MainWindow::NUM_DSPINS];
 
     bool debugMode;
 
@@ -247,13 +247,13 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
         bsgbox->addWidget(new QLabel(labels[i]), i + 1, 0);
     }
 
-    for(int i = 0; i < MainWindow::NUM_SPINS; ++i) {
-        spins[i] = new QDoubleSpinBox();
-        QDoubleSpinBox* spin = spins[i];
-        SpinInfo info = spinInfo[i];
-        spin->setRange(info.lower, info.upper);
-        spin->setValue(info.value);
-        bsgbox->addWidget(spin, info.row, info.cln);
+    for(int i = 0; i < MainWindow::NUM_DSPINS; ++i) {
+        dspins[i] = new QDoubleSpinBox();
+        QDoubleSpinBox* dspin = dspins[i];
+        DoubleSpinInfo info = doublespinInfo[i];
+        dspin->setRange(info.lower, info.upper);
+        dspin->setValue(info.value);
+        bsgbox->addWidget(dspin, info.row, info.cln);
     }
 
     resetButton = new QPushButton("Reset");
@@ -308,11 +308,11 @@ void MainWindow::onImportFile(QString filename)
                 impl->lines[i]->setText(in.readLine());
             }
 
-            for(int i = 0; i < NUM_SPINS; ++i) {
-                impl->spins[i]->setValue(in.readLine().toDouble());
+            for(int i = 0; i < NUM_DSPINS; ++i) {
+                impl->dspins[i]->setValue(in.readLine().toDouble());
             }
 
-            for(int i = 0; i < ConfigDialog::NUM_SPINS; ++i) {
+            for(int i = 0; i < ConfigDialog::NUM_DSPINS; ++i) {
                 impl->config->setValue(i, in.readLine().toDouble());
             }
 
@@ -334,8 +334,8 @@ void MainWindow::onClearButtonClicked()
         impl->lines[i]->setText("0.0.0.0/0");
     }
 
-    for(int i = 0; i < MainWindow::NUM_SPINS; ++i) {
-        impl->spins[i]->setValue(0.0);
+    for(int i = 0; i < MainWindow::NUM_DSPINS; ++i) {
+        impl->dspins[i]->setValue(0.0);
     }
 }
 
@@ -420,12 +420,12 @@ void MainWindow::onExportActionTriggered(const bool& on)
                 out << line->text() << endl;
             }
 
-            for(int i = 0; i < NUM_SPINS; ++i) {
-                QDoubleSpinBox* spin = impl->spins[i];
+            for(int i = 0; i < NUM_DSPINS; ++i) {
+                QDoubleSpinBox* spin = impl->dspins[i];
                 out << spin->value() << endl;
             }
 
-            for(int i = 0; i < ConfigDialog::NUM_SPINS; ++i) {
+            for(int i = 0; i < ConfigDialog::NUM_DSPINS; ++i) {
                 double value  = impl->config->spin(i);
                 out << value << endl;
             }
@@ -498,9 +498,9 @@ void MainWindowImpl::onTCExecute()
         return;
     }
 
-    double inboundDelayTime = spins[MainWindow::IN_DLY_TIM]->value();
-    double inboundLossPercent = spins[MainWindow::IN_LOS_PCT]->value();
-    double inboundRateRate = spins[MainWindow::IN_RAT_RAT]->value();
+    double inboundDelayTime = dspins[MainWindow::IN_DLY_TIM]->value();
+    double inboundLossPercent = dspins[MainWindow::IN_LOS_PCT]->value();
+    double inboundRateRate = dspins[MainWindow::IN_RAT_RAT]->value();
 
     double inboundLimitPackets = config->spin(ConfigDialog::IN_LMT_PKT);
     double inboundDelayJitter = config->spin(ConfigDialog::IN_DLY_JTR);
@@ -543,9 +543,9 @@ void MainWindowImpl::onTCExecute()
         inboundSlotDistribution = item.toStdString();
     }
 
-    double outboundDelayTime = spins[MainWindow::OUT_DLY_TIM]->value();
-    double outboundLossPercent = spins[MainWindow::OUT_LOS_PCT]->value();
-    double outboundRateRate = spins[MainWindow::OUT_RAT_RAT]->value();
+    double outboundDelayTime = dspins[MainWindow::OUT_DLY_TIM]->value();
+    double outboundLossPercent = dspins[MainWindow::OUT_LOS_PCT]->value();
+    double outboundRateRate = dspins[MainWindow::OUT_RAT_RAT]->value();
 
     double outboundLimitPackets = config->spin(ConfigDialog::OUT_LMT_PKT);
     double outboundDelayJitter = config->spin(ConfigDialog::OUT_DLY_JTR);

@@ -28,7 +28,7 @@ const QStringList names = {
 };
 
 
-struct SpinInfo {
+struct DoubleSpinInfo {
     int row;
     int cln;
     double lower;
@@ -37,7 +37,7 @@ struct SpinInfo {
 };
 
 
-SpinInfo spinInfo[] = {
+DoubleSpinInfo doublespinInfo[] = {
     {  1, 1, 0.0,  10000.0, 2000.0 }, {  1, 2, 0.0,  10000.0, 2000.0 },
     {  2, 1, 0.0, 100000.0,    0.0 }, {  2, 2, 0.0, 100000.0,    0.0 },
     {  3, 1, 0.0,    100.0,    0.0 }, {  3, 2, 0.0,    100.0,    0.0 },
@@ -78,7 +78,7 @@ public:
     ConfigDialogImpl(ConfigDialog* self);
     ConfigDialog* self;
 
-    QDoubleSpinBox* spins[ConfigDialog::NUM_SPINS];
+    QDoubleSpinBox* dspins[ConfigDialog::NUM_DSPINS];
     QComboBox* combos[ConfigDialog::NUM_COMBOS];
 };
 
@@ -104,13 +104,13 @@ ConfigDialogImpl::ConfigDialogImpl(ConfigDialog *self)
         gbox->addWidget(label, i + 1, 0);
     }
 
-    for(int i = 0; i < ConfigDialog::NUM_SPINS; ++i) {
-        spins[i] = new QDoubleSpinBox();
-        QDoubleSpinBox* spin = spins[i];
-        SpinInfo info = spinInfo[i];
-        spin->setRange(info.lower, info.upper);
-        spin->setValue(info.value);
-        gbox->addWidget(spin, info.row, info.cln);
+    for(int i = 0; i < ConfigDialog::NUM_DSPINS; ++i) {
+        dspins[i] = new QDoubleSpinBox();
+        QDoubleSpinBox* dspin = dspins[i];
+        DoubleSpinInfo info = doublespinInfo[i];
+        dspin->setRange(info.lower, info.upper);
+        dspin->setValue(info.value);
+        gbox->addWidget(dspin, info.row, info.cln);
     }
 
     QStringList distributions = { "disabled", "uniform", "normal", "pareto", "paretonormal" };
@@ -151,13 +151,13 @@ ConfigDialog::~ConfigDialog()
 
 void ConfigDialog::setValue(const int& index, const double& value)
 {
-    impl->spins[index]->setValue(value);
+    impl->dspins[index]->setValue(value);
 }
 
 
 double ConfigDialog::spin(const int& index) const
 {
-    return impl->spins[index]->value();
+    return impl->dspins[index]->value();
 }
 
 
@@ -175,9 +175,9 @@ QString ConfigDialog::combo(const int& index) const
 
 void ConfigDialog::onResetButtonClicked()
 {
-    for(int i = 0; i < ConfigDialog::NUM_SPINS; ++i) {
-        QDoubleSpinBox* spin = impl->spins[i];
-        SpinInfo info = spinInfo[i];
+    for(int i = 0; i < ConfigDialog::NUM_DSPINS; ++i) {
+        QDoubleSpinBox* spin = impl->dspins[i];
+        DoubleSpinInfo info = doublespinInfo[i];
         spin->setRange(info.lower, info.upper);
         spin->setValue(info.value);
     }
