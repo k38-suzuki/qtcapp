@@ -1,11 +1,11 @@
 
-set(target qtc-app)
+set(target qtcapp)
 
-QT5_ADD_RESOURCES(RC_SRCS qtc-app.qrc)
+QT5_ADD_RESOURCES(RC_SRCS Qtcapp.qrc)
 
 set(sources
     ConfigDialog.cpp
-    main.cpp
+    qtcapp.cpp
     MainWindow.cpp
 )
 
@@ -17,4 +17,4 @@ set(headers
 add_executable(${target} ${sources} ${headers} ${RC_SRCS})
 target_link_libraries(${target} Qt5::Widgets)
 
-install(TARGETS qtc-app DESTINATION bin)
+install(TARGETS ${target} DESTINATION bin)

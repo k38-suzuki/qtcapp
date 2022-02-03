@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10.0)
 
-project(qtc-app)
+project(Qtcapp)
 
 find_package(Qt5Widgets REQUIRED)
 

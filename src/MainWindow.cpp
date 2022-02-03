@@ -178,7 +178,7 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindowImpl::MainWindowImpl(MainWindow* self)
     : self(self)
 {
-    self->setWindowTitle("QtcApp");
+    self->setWindowTitle("Qtcapp");
 
     QStringList topMenus ={ "&File", "&Edit", "&View", "&Option", "&Help" };
     for(int i = 0; i < MainWindow::NUM_MENUS; ++i) {
