@@ -12,6 +12,8 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+using namespace qtc;
+
 namespace {
 
 const QStringList names = {
@@ -72,6 +74,9 @@ ComboInfo comboInfo[] = {
 
 }
 
+
+namespace qtc {
+
 class ConfigDialogImpl
 {
 public:
@@ -81,6 +86,8 @@ public:
     QDoubleSpinBox* dspins[ConfigDialog::NUM_DSPINS];
     QComboBox* combos[ConfigDialog::NUM_COMBOS];
 };
+
+}
 
 
 ConfigDialog::ConfigDialog(QWidget* parent)

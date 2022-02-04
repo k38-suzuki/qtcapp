@@ -8,6 +8,8 @@
 
 #include <QMainWindow>
 
+namespace qtc {
+
 class MainWindowImpl;
 
 class MainWindow : public QMainWindow
@@ -54,5 +56,7 @@ public Q_SLOTS:
     void onDebugActionTriggered(const bool& on);
     void onCurrentIFBChanged(QString ifbName);
 };
+
+}
 
 #endif // QTCAPP_MAINWINDOW_H

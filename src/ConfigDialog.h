@@ -8,6 +8,8 @@
 
 #include <QDialog>
 
+namespace qtc {
+
 class ConfigDialogImpl;
 
 class ConfigDialog : public QDialog
@@ -57,5 +59,7 @@ private:
 public Q_SLOTS:
     void onResetButtonClicked();
 };
+
+}
 
 #endif // QTCAPP_CONFIGDIALOG_H

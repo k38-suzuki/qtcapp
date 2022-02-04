@@ -31,6 +31,7 @@
 
 #define IFR_MAX 10
 
+using namespace qtc;
 using namespace std;
 
 namespace {
@@ -47,7 +48,6 @@ vector<string> split(const string& s, char delim)
     }
     return elements;
 }
-
 
 bool addressCheck(const std::string& address)
 {
@@ -78,14 +78,12 @@ bool addressCheck(const std::string& address)
     return true;
 }
 
-
 struct ActionInfo {
     QString label;
     bool checkable;
     bool checked;
     int menu;
 };
-
 
 ActionInfo actionInfo[] = {
     { "Import",            false, false,   MainWindow::FILE },
@@ -95,19 +93,16 @@ ActionInfo actionInfo[] = {
     { "Debug mode",         true, false, MainWindow::OPTION }
 };
 
-
 struct ComboInfo {
     QString label;
     int row;
     int cln;
 };
 
-
 ComboInfo comboInfo[] = {
     { "Interface", 0, 1 },
     { "IFB",       0, 3 }
 };
-
 
 struct LineInfo {
     QString label;
@@ -115,12 +110,10 @@ struct LineInfo {
     int cln;
 };
 
-
 LineInfo lineInfo[] = {
     { "Source IP",      1, 1 },
     { "Destination IP", 1, 3 }
 };
-
 
 struct DoubleSpinInfo {
     int row;
@@ -130,7 +123,6 @@ struct DoubleSpinInfo {
     double value;
 };
 
-
 DoubleSpinInfo doublespinInfo[] = {
     { 1, 1, 0.0,   100000.0, 0.0 }, { 1, 2, 0.0,   100000.0, 0.0 },
     { 2, 1, 0.0,      100.0, 0.0 }, { 2, 2, 0.0,      100.0, 0.0 },
@@ -139,6 +131,8 @@ DoubleSpinInfo doublespinInfo[] = {
 
 }
 
+
+namespace qtc {
 
 class MainWindowImpl
 {
@@ -165,6 +159,8 @@ public:
     void onTCExecute();
     void onCommandExecute(const string& message);
 };
+
+}
 
 
 MainWindow::MainWindow(QWidget *parent)
