@@ -17,13 +17,21 @@ set(headers
 add_library(${PROJECT_NAME} SHARED ${sources} ${headers} ${RC_SRCS})
 target_link_libraries(${PROJECT_NAME} Qt5::Widgets)
 
+set(target qtcapp)
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    PUBLIC_HEADER App.h)
 install(TARGETS ${PROJECT_NAME}
+    EXPORT ${target}
+    INCLUDES DESTINATION include
+    PUBLIC_HEADER DESTINATION include/qtcapp
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     RUNTIME DESTINATION bin)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/qtcapp DESTINATION include)
 
-set(target qtcapp)
+install(EXPORT ${target}
+    FILE qtcapp-config.cmake
+    DESTINATION share/cmake/qtcapp)
+
 add_executable(${target} qtcapp.cpp)
 target_link_libraries(${target} Qtcapp)
 set_target_properties(${target} PROPERTIES
