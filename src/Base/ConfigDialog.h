@@ -3,8 +3,8 @@
   @author Kenta Suzuki
 */
 
-#ifndef QTCAPP_CONFIGDIALOG_H
-#define QTCAPP_CONFIGDIALOG_H
+#ifndef QTC_CONFIGDIALOG_H
+#define QTC_CONFIGDIALOG_H
 
 #include <QDialog>
 
@@ -62,4 +62,4 @@ public Q_SLOTS:
 
 }
 
-#endif // QTCAPP_CONFIGDIALOG_H
+#endif // QTC_CONFIGDIALOG_H

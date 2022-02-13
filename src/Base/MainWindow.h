@@ -3,8 +3,8 @@
   @author Kenta Suzuki
 */
 
-#ifndef QTCAPP_MAINWINDOW_H
-#define QTCAPP_MAINWINDOW_H
+#ifndef QTC_MAINWINDOW_H
+#define QTC_MAINWINDOW_H
 
 #include <QMainWindow>
 
@@ -59,4 +59,4 @@ public Q_SLOTS:
 
 }
 
-#endif // QTCAPP_MAINWINDOW_H
+#endif // QTC_MAINWINDOW_H

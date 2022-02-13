@@ -3,7 +3,7 @@
   @author Kenta Suzuki
 */
 
-#include <qtcapp/App>
+#include <App.h>
 
 using namespace qtc;
 
