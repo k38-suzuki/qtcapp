@@ -163,7 +163,7 @@ public:
 }
 
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
 {
     impl = new MainWindowImpl(this);
@@ -192,11 +192,11 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 
     debugMode = false;
 
-    config = new ConfigDialog();
+    config = new ConfigDialog;
 
-    QGridLayout* gbox = new QGridLayout();
+    QGridLayout* gbox = new QGridLayout;
     for(int i = 0; i < MainWindow::NUM_COMBOS; ++i) {
-        combos[i] = new QComboBox();
+        combos[i] = new QComboBox;
         QComboBox* combo = combos[i];
         ComboInfo info = comboInfo[i];
         gbox->addWidget(new QLabel(info.label), info.row, info.cln - 1);
@@ -204,7 +204,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     }
 
     for(int i = 0; i < MainWindow::NUM_LINES; ++i) {
-        lines[i] = new QLineEdit();
+        lines[i] = new QLineEdit;
         QLineEdit* line = lines[i];
         line->setText("0.0.0.0/0");
         LineInfo info = lineInfo[i];
@@ -234,7 +234,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     const QStringList items = { "ifb0", "ifb1" };
     ifbCombo->addItems(items);
 
-    QGridLayout* bsgbox = new QGridLayout();
+    QGridLayout* bsgbox = new QGridLayout;
     bsgbox->addWidget(new QLabel("Inbound"), 0, 1);
     bsgbox->addWidget(new QLabel("Outbound"), 0, 2);
 
@@ -244,7 +244,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     }
 
     for(int i = 0; i < MainWindow::NUM_DSPINS; ++i) {
-        dspins[i] = new QDoubleSpinBox();
+        dspins[i] = new QDoubleSpinBox;
         QDoubleSpinBox* dspin = dspins[i];
         DoubleSpinInfo info = doublespinInfo[i];
         dspin->setRange(info.lower, info.upper);
@@ -258,8 +258,8 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     bsgbox->addWidget(resetButton, 4, 1);
     bsgbox->addWidget(applyButton, 4, 2);
 
-    QWidget* centralWidget = new QWidget();
-    QVBoxLayout* vbox = new QVBoxLayout();
+    QWidget* centralWidget = new QWidget;
+    QVBoxLayout* vbox = new QVBoxLayout;
     vbox->addLayout(gbox);
     vbox->addSpacing(10);
     vbox->addLayout(bsgbox);

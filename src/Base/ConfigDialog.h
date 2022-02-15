@@ -6,11 +6,11 @@
 #ifndef QTC_CONFIGDIALOG_H
 #define QTC_CONFIGDIALOG_H
 
+#include <QComboBox>
 #include <QDialog>
+#include <QDoubleSpinBox>
 
 namespace qtc {
-
-class ConfigDialogImpl;
 
 class ConfigDialog : public QDialog
 {
@@ -18,7 +18,6 @@ class ConfigDialog : public QDialog
 
 public:
     ConfigDialog(QWidget* parent = 0);
-    virtual ~ConfigDialog();
 
     enum SpinId {
         IN_LMT_PKT, OUT_LMT_PKT,
@@ -52,12 +51,12 @@ public:
     void setText(const int& index, const QString text);
     QString combo(const int& index) const;
 
-private:
-    ConfigDialogImpl* impl;
-    friend class ConfigDialogImpl;
-
 public Q_SLOTS:
     void onResetButtonClicked();
+
+private:
+    QDoubleSpinBox* dspins_[NUM_DSPINS];
+    QComboBox* combos_[NUM_COMBOS];
 };
 
 }
