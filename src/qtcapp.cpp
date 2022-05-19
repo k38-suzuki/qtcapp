@@ -15,7 +15,7 @@ int main(int argc, char** argv)
     app.setWindowIcon(QIcon(":/qtc-app/icon/qtc-app.png"));
     MainWindow w;
     for(int i = 0; i < argc; ++i) {
-        w.onImportFile(QString(argv[i]));
+        w.load(QString(argv[i]).toStdString());
     }
     w.show();
     return app.exec();

@@ -6,11 +6,11 @@
 #ifndef QTC_CONFIGDIALOG_H
 #define QTC_CONFIGDIALOG_H
 
-#include <QComboBox>
 #include <QDialog>
-#include <QDoubleSpinBox>
 
 namespace qtc {
+
+class ConfigDialogImpl;
 
 class ConfigDialog : public QDialog
 {
@@ -18,8 +18,9 @@ class ConfigDialog : public QDialog
 
 public:
     ConfigDialog(QWidget* parent = 0);
+    virtual ~ConfigDialog();
 
-    enum SpinId {
+    enum SpinID {
         IN_LMT_PKT, OUT_LMT_PKT,
         IN_DLY_JTR, OUT_DLY_JTR,
         IN_DLY_COR, OUT_DLY_COR,
@@ -39,7 +40,7 @@ public:
         NUM_DSPINS
     };
 
-    enum ComboId {
+    enum ComboID {
         IN_DLY_DST, OUT_DLY_DST,
         IN_LOS_RDM, OUT_LOS_RDM,
         IN_SLT_DST, OUT_SLT_DST,
@@ -48,15 +49,12 @@ public:
 
     void setValue(const int& index, const double& value);
     double spin(const int& index) const;
-    void setText(const int& index, const QString text);
-    QString combo(const int& index) const;
-
-public Q_SLOTS:
-    void onResetButtonClicked();
+    void setText(const int& index, const std::string& text);
+    std::string combo(const int& index) const;
 
 private:
-    QDoubleSpinBox* dspins_[NUM_DSPINS];
-    QComboBox* combos_[NUM_COMBOS];
+    ConfigDialogImpl* impl;
+    friend class ConfigDialogImpl;
 };
 
 }
