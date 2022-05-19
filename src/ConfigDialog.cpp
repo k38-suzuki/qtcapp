@@ -180,10 +180,10 @@ string ConfigDialog::combo(const int& index) const
 void ConfigDialogImpl::onResetButtonClicked()
 {
     for(int i = 0; i < ConfigDialog::NUM_DSPINS; ++i) {
-        QDoubleSpinBox* spin = dspins[i];
+        QDoubleSpinBox* dspin = dspins[i];
         DoubleSpinInfo info = dspinInfo[i];
-        spin->setRange(info.lower, info.upper);
-        spin->setValue(info.value);
+        dspin->setRange(info.lower, info.upper);
+        dspin->setValue(info.value);
     }
 
     for(int i = 0; i < ConfigDialog::NUM_COMBOS; ++i) {

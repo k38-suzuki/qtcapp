@@ -29,8 +29,6 @@
 #include <sys/socket.h>
 #include "ConfigDialog.h"
 
-#define IFR_MAX 10
-
 using namespace qtc;
 using namespace std;
 
@@ -47,8 +45,8 @@ vector<string> split(const string& s, char delim)
     vector<string> elements;
     stringstream ss(s);
     string item;
-    while (getline(ss, item, delim)) {
-    if (!item.empty()) {
+    while(getline(ss, item, delim)) {
+    if(!item.empty()) {
             elements.push_back(item);
         }
     }
@@ -81,15 +79,16 @@ struct ActionInfo {
     const char* label;
     bool checkable;
     bool checked;
+    bool enabled;
     int menu;
 };
 
 ActionInfo actionInfo[] = {
-    { "Import",            false, false,   FILE },
-    { "Export",            false, false,   FILE },
-    { "Quit",              false, false,   FILE },
-    { "Advanced settings", false, false, OPTION },
-    { "Debug mode",         true, false, OPTION }
+    { "Import",            false, false,  true,   FILE },
+    { "Export",            false, false,  true,   FILE },
+    { "Quit",              false, false,  true,   FILE },
+    { "Advanced settings", false, false, false, OPTION },
+    { "Debug mode",         true, false,  true, OPTION }
 };
 
 struct ComboInfo {
@@ -164,12 +163,6 @@ public:
 
     bool load(const string& filename);
 
-    void onTCInitialize();
-    void onTCClear();
-    void onTCFinalize();
-    void onTCExecute();
-    void onCommandExecute(const string& message);
-
     void onClearButtonClicked();
     void onApplyButtonToggled(const bool& on);
     void onImportActionTriggered(const bool& on);
@@ -208,6 +201,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
         QAction* action = actions[i];
         action->setCheckable(info.checkable);
         action->setChecked(info.checked);
+        action->setEnabled(info.enabled);
         menus[info.menu]->addAction(action);
     }
 
@@ -236,6 +230,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     }
 
     QComboBox* ifcCombo = combos[IFC];
+    static const int IFR_MAX = 10;
     struct ifreq ifr[IFR_MAX];
     struct ifconf ifc;
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -321,6 +316,8 @@ bool MainWindowImpl::load(const string& filename)
     QString suffix = info.suffix();
     if(suffix.isEmpty()) {
         return false;
+    } else if(suffix != ".qtc") {
+        return false;
     }
 
     if(!filename.empty()) {
@@ -330,19 +327,15 @@ bool MainWindowImpl::load(const string& filename)
             for(int i = 0; i < NUM_COMBOS; ++i) {
                 combos[i]->setCurrentText(in.readLine());
             }
-
             for(int i = 0; i < NUM_LINES; ++i) {
                 lines[i]->setText(in.readLine());
             }
-
             for(int i = 0; i < NUM_DSPINS; ++i) {
                 dspins[i]->setValue(in.readLine().toDouble());
             }
-
             for(int i = 0; i < ConfigDialog::NUM_DSPINS; ++i) {
                 config->setValue(i, in.readLine().toDouble());
             }
-
             for(int i = 0; i < ConfigDialog::NUM_COMBOS; ++i) {
                 config->setText(i, in.readLine().toStdString());
             }
@@ -357,11 +350,9 @@ void MainWindowImpl::onClearButtonClicked()
     for(int i = 0; i < NUM_COMBOS; ++i) {
         combos[i]->setCurrentIndex(0);
     }
-
     for(int i = 0; i < NUM_LINES; ++i) {
         lines[i]->setText("0.0.0.0/0");
     }
-
     for(int i = 0; i < NUM_DSPINS; ++i) {
         dspins[i]->setValue(0.0);
     }
@@ -373,11 +364,10 @@ void MainWindowImpl::onApplyButtonToggled(const bool& on)
     QPalette palette;
     if(on) {
         palette.setColor(QPalette::Button, QColor(Qt::red));
-        onTCInitialize();
-        onTCExecute();
+        initialize();
+        update();
     } else {
-        onTCClear();
-        onTCFinalize();
+        finalize();
     }
     combos[IFC]->setEnabled(!on);
     combos[IFB]->setEnabled(!on);
@@ -443,22 +433,18 @@ void MainWindowImpl::onExportActionTriggered(const bool& on)
                 QComboBox* combo = combos[i];
                 out << combo->currentText() << endl;
             }
-
             for(int i = 0; i < NUM_LINES; ++i) {
                 QLineEdit* line = lines[i];
                 out << line->text() << endl;
             }
-
             for(int i = 0; i < NUM_DSPINS; ++i) {
                 QDoubleSpinBox* spin = dspins[i];
                 out << spin->value() << endl;
             }
-
             for(int i = 0; i < ConfigDialog::NUM_DSPINS; ++i) {
                 double value  = config->spin(i);
                 out << value << endl;
             }
-
             for(int i = 0; i < ConfigDialog::NUM_COMBOS; ++i) {
                 string text = config->combo(i);
                 out << text.c_str() << endl;
@@ -469,44 +455,40 @@ void MainWindowImpl::onExportActionTriggered(const bool& on)
 }
 
 
-void MainWindowImpl::onTCInitialize()
+void MainWindowImpl::initialize()
 {
     string ifbName = combos[IFB]->currentText().toStdString();
-    string message = (boost::format("sudo modprobe ifb;"
-                                    "sudo modprobe act_mirred;"
-                                    "sudo ip link set dev %s up;")
-                % ifbName.c_str()).str();
-    onCommandExecute(message);
+    if(!isFinalized) {
+        finalize();
+    }
+    start("sudo modprobe ifb;");
+    start("sudo modprobe act_mirred;");
+    start((boost::format("sudo ip link set dev %s up;") % ifbName.c_str()).str());
+    isUpdated = false;
+    isFinalized = false;
 }
 
 
-void MainWindowImpl::onTCClear()
+void MainWindowImpl::start(const string& program)
+{
+    int ret = system(program.c_str());
+}
+
+
+void MainWindowImpl::clear()
 {
     string ifcName = combos[IFC]->currentText().toStdString();
     string ifbName = combos[IFB]->currentText().toStdString();
-    string message = (boost::format("sudo tc qdisc del dev %s ingress;"
-                                    "sudo tc qdisc del dev %s root;"
-                                    "sudo tc qdisc del dev %s root;")
-                % ifcName.c_str()
-                % ifbName.c_str()
-                % ifcName.c_str()
-                ).str();
-    onCommandExecute(message);
+    if(isUpdated) {
+        start((boost::format("sudo tc qdisc del dev %s ingress;") % ifcName.c_str()).str());
+        start((boost::format("sudo tc qdisc del dev %s root;") % ifbName.c_str()).str());
+        start((boost::format("sudo tc qdisc del dev %s root;") % ifcName.c_str()).str());
+        isUpdated = false;
+    }
 }
 
 
-void MainWindowImpl::onTCFinalize()
-{
-    string ifbName = combos[IFB]->currentText().toStdString();
-    string message = (boost::format("sudo ip link set dev %s down;"
-                                    "sudo rmmod ifb;")
-                % ifbName.c_str()
-                ).str();
-    onCommandExecute(message);
-}
-
-
-void MainWindowImpl::onTCExecute()
+void MainWindowImpl::update()
 {
     string ifcName = combos[IFC]->currentText().toStdString();
     string ifbName = combos[IFB]->currentText().toStdString();
@@ -767,94 +749,22 @@ void MainWindowImpl::onTCExecute()
         dstipName = "0.0.0.0/0";
     }
 
-    string srcMessage;
-    string dstMessage;
-
-    if((!srcipName.empty()) && (!dstipName.empty())) {
-        dstMessage = (
-                    boost::format("sudo tc qdisc add dev %s parent 1:2 handle 20: netem %s;"
-                                  "sudo tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip src %s match ip dst %s flowid 1:2;")
-                    % ifbName.c_str() % inboundEffects.c_str()
-                    % ifbName.c_str() % dstipName.c_str() % srcipName.c_str()
-                    ).str();
-        srcMessage = (
-                    boost::format("sudo tc qdisc add dev %s parent 1:2 handle 20: netem %s;"
-                                  "sudo tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip src %s match ip dst %s flowid 1:2;")
-                    % ifcName.c_str() % outboundEffects.c_str()
-                    % ifcName.c_str() % srcipName.c_str() % dstipName.c_str()
-                    ).str();
-    }
-
-    string message = (
-                boost::format("sudo tc qdisc add dev %s ingress handle ffff:;"
-                              "sudo tc filter add dev %s parent ffff: protocol ip u32 match u32 0 0 action mirred egress redirect dev %s;"
-                              "sudo tc qdisc add dev %s root handle 1: prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;"
-                              "sudo tc qdisc add dev %s parent 1:1 handle 10: netem limit %s;"
-                              "%s"
-                              "sudo tc qdisc add dev %s root handle 1: prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;"
-                              "sudo tc qdisc add dev %s parent 1:1 handle 10: netem limit %s;"
-                              "%s")
-                % ifcName.c_str()
-                % ifcName.c_str() % ifbName.c_str()
-                % ifbName.c_str()
-                % ifbName.c_str()
-                % to_string((int)inboundLimitPackets)
-                % dstMessage.c_str()
-                % ifcName.c_str()
-                % ifcName.c_str()
-                % to_string((int)outboundLimitPackets)
-                % srcMessage.c_str()
-                ).str();
-
-    onCommandExecute(message);
-}
-
-
-void MainWindowImpl::onCommandExecute(const string& message)
-{
-    vector<string> commands = split(message, ';');
-    for(size_t i = 0; i < commands.size(); ++i) {
-        QString command = QString::fromStdString(commands[i]);
-        if(!debugMode) {
-            QProcess::execute(command);
-        } else {
-            qDebug() << command;
-        }
-    }
-}
-
-
-void MainWindowImpl::initialize()
-{
-    if(!isFinalized) {
-        finalize();
-    }
-    // initialize commands
-    isUpdated = false;
-    isFinalized = false;
-}
-
-
-void MainWindowImpl::start(const string& program)
-{
-    int ret = system(program.c_str());
-}
-
-
-void MainWindowImpl::clear()
-{
-    if(isUpdated) {
-        // clear commands
-        isUpdated = false;
-    }
-}
-
-
-void MainWindowImpl::update()
-{
     if(!isFinalized) {
         clear();
-        // update commands
+        start((boost::format("sudo tc qdisc add dev %s ingress handle ffff:;") % ifcName.c_str()).str());
+        start((boost::format("sudo tc filter add dev %s parent ffff: protocol ip u32 match u32 0 0 action mirred egress redirect dev %s;") % ifcName.c_str() % ifbName.c_str()).str());
+        start((boost::format("sudo tc qdisc add dev %s root handle 1: prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;") % ifbName.c_str()).str());
+        start((boost::format("sudo tc qdisc add dev %s parent 1:1 handle 10: netem limit %s;") % ifbName.c_str() % to_string((int)inboundLimitPackets)).str());
+        if((!srcipName.empty()) && (!dstipName.empty())) {
+            start((boost::format("sudo tc qdisc add dev %s parent 1:2 handle 20: netem %s;") % ifbName.c_str() % inboundEffects.c_str()).str());
+            start((boost::format("sudo tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip src %s match ip dst %s flowid 1:2;") % ifbName.c_str() % dstipName.c_str() % srcipName.c_str()).str());
+        }
+        start((boost::format("sudo tc qdisc add dev %s root handle 1: prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;") % ifcName.c_str()).str());
+        start((boost::format("sudo tc qdisc add dev %s parent 1:1 handle 10: netem limit %s;") % ifcName.c_str() % to_string((int)outboundLimitPackets)).str());
+        if((!srcipName.empty()) && (!dstipName.empty())) {
+            start((boost::format("sudo tc qdisc add dev %s parent 1:2 handle 20: netem %s;") % ifcName.c_str() % outboundEffects.c_str()).str());
+            start((boost::format("sudo tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip src %s match ip dst %s flowid 1:2;") % ifcName.c_str() % srcipName.c_str() % dstipName.c_str()).str());
+        }
         isUpdated = true;
     }
 }
@@ -862,9 +772,11 @@ void MainWindowImpl::update()
 
 void MainWindowImpl::finalize()
 {
+    string ifbName = combos[IFB]->currentText().toStdString();
     if(!isFinalized) {
         clear();
-        // finalize commands
+        start((boost::format("sudo ip link set dev %s down;") % ifbName.c_str()).str());
+        start("sudo rmmod ifb;");
         isFinalized = true;
     }
 }
