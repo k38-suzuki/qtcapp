@@ -22,6 +22,7 @@
 #include <QTextStream>
 #include <QVBoxLayout>
 #include <boost/format.hpp>
+#include <iostream>
 #include <sstream>
 #include <stdlib.h>
 #include <net/if.h>
@@ -471,7 +472,11 @@ void MainWindowImpl::initialize()
 
 void MainWindowImpl::start(const string& program)
 {
-    int ret = system(program.c_str());
+    if(!debugMode) {
+        int ret = system(program.c_str());
+    } else {
+        cout << program << endl;
+    }
 }
 
 
