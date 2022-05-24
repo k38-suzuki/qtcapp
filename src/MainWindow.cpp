@@ -242,11 +242,8 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     int nifs = ifc.ifc_len / sizeof(struct ifreq);
     for(int j = 0; j < nifs; j++) {
         string interfaceName = string(ifr[j].ifr_name);
-        if(interfaceName != "lo") {
-            ifcCombo->addItem(interfaceName.c_str());
-        }
+        ifcCombo->addItem(interfaceName.c_str());
     }
-    ifcCombo->addItem("lo");
     ::close(fd);
 
     QComboBox* ifbCombo = combos[IFB];

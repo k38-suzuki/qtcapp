@@ -93,6 +93,7 @@ ConfigDialog::ConfigDialog(QWidget* parent)
     impl = new ConfigDialogImpl(this);
 }
 
+
 ConfigDialogImpl::ConfigDialogImpl(ConfigDialog* self)
     : self(self)
 {
