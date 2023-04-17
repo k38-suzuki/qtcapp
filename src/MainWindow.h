@@ -3,8 +3,8 @@
   @author Kenta Suzuki
 */
 
-#ifndef QTC_MAINWINDOW_H
-#define QTC_MAINWINDOW_H
+#ifndef QTC_MAIN_WINDOW_H
+#define QTC_MAIN_WINDOW_H
 
 #include <QMainWindow>
 
@@ -15,7 +15,6 @@ class MainWindowImpl;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-
 public:
     MainWindow(QWidget* parent = 0);
     virtual ~MainWindow();
@@ -29,4 +28,4 @@ private:
 
 }
 
-#endif // QTC_MAINWINDOW_H
+#endif // QTC_MAIN_WINDOW_H

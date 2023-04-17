@@ -5,8 +5,8 @@
   <description>The qtcapp package</description>
   <maintainer email="suzuki.kenta38@jaea.go.jp">Kenta Suzuki</maintainer>
   <license>MIT</license>
-  <url type="website">https://github.com/k38-suzuki/qtcapp</url>
-  <author email="suzuki.kenta38@jaea.go.jp">Kenta Suzuki</author>
+  <!-- <url type="website">https://github.com/k38-suzuki/qtcapp</url>
+  <author email="suzuki.kenta38@jaea.go.jp">Kenta Suzuki</author> -->
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>

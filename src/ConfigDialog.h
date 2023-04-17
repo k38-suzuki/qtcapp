@@ -3,8 +3,8 @@
   @author Kenta Suzuki
 */
 
-#ifndef QTC_CONFIGDIALOG_H
-#define QTC_CONFIGDIALOG_H
+#ifndef QTC_CONFIG_DIALOG_H
+#define QTC_CONFIG_DIALOG_H
 
 #include <QDialog>
 
@@ -15,7 +15,6 @@ class ConfigDialogImpl;
 class ConfigDialog : public QDialog
 {
     Q_OBJECT
-
 public:
     ConfigDialog(QWidget* parent = 0);
     virtual ~ConfigDialog();
@@ -59,4 +58,4 @@ private:
 
 }
 
-#endif // QTC_CONFIGDIALOG_H
+#endif // QTC_CONFIG_DIALOG_H

@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.10)
-
 project(qtcapp VERSION 1.2)
 
 add_library(tutorial_compiler_flags INTERFACE)
@@ -17,22 +16,22 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 
 option(BUILD_QTCAPP_ROS "Building a qtcapp_ros" OFF)
 if(BUILD_QTCAPP_ROS)
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  rospy
-  std_msgs
-  rviz
-)
+  find_package(catkin REQUIRED COMPONENTS
+    roscpp
+    rospy
+    std_msgs
+    rviz
+  )
 
-find_package(Qt5 ${rviz_QT_VERSION} EXACT REQUIRED
-  Core
-  Widgets
-)
-set(QT_LIBRARIES Qt5::Widgets)
-add_definitions(-DQT_NO_KEYWORDS)
+  find_package(Qt5 ${rviz_QT_VERSION} EXACT REQUIRED
+    Core
+    Widgets
+  )
+  set(QT_LIBRARIES Qt5::Widgets)
+  add_definitions(-DQT_NO_KEYWORDS)
 
-catkin_package()
-include_directories(${catkin_INCLUDE_DIRS})
+  catkin_package()
+  include_directories(${catkin_INCLUDE_DIRS})
 endif()
 
 add_subdirectory(src)
