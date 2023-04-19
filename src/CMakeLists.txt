@@ -1,12 +1,10 @@
 
 set(sources
-  ConfigDialog.cpp
   MainWindow.cpp
   main.cpp
 )
 
 set(headers
-  ConfigDialog.h
   MainWindow.h
 )
 

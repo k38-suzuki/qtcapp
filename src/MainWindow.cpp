@@ -1,12 +1,12 @@
-/*!
-  @file
-  @author Kenta Suzuki
+/**
+    @author Kenta Suzuki
 */
 
 #include "MainWindow.h"
 #include <QCheckBox>
 #include <QComboBox>
-#include <QDebug>
+#include <QDialog>
+#include <QDialogButtonBox>
 #include <QDoubleSpinBox>
 #include <QFile>
 #include <QFileDialog>
@@ -28,7 +28,6 @@
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
-#include "ConfigDialog.h"
 
 using namespace qtc;
 using namespace std;
@@ -54,7 +53,7 @@ vector<string> split(const string& s, char delim)
     return elements;
 }
 
-bool checkIP(const std::string& address)
+bool checkIP(const string& address)
 {
     bool result = false;
     vector<string> ip_mask = split(address, '/');
@@ -75,6 +74,19 @@ bool checkIP(const std::string& address)
     }
     return result;
 }
+
+const QStringList names = {
+          "Limit Packets [packets]",           "Delay Jitter [ms]",
+            "Delay Correlation [%]",      "Delay Distribution [-]",
+                  "Loss Random [-]",        "Loss Correlation [%]",
+          "Duplication Percent [%]", "Duplication Correlation [%]",
+           "Corruption Percent [%]",  "Corruption Correlation [%]",
+           "Reordering Percent [%]",  "Reordering Correlation [%]",
+    "Reordering Distance [packets]", "Rate Packet Overhead [byte]",
+            "Rate Cell Size [byte]",   "Rate Cell Overhead [byte]",
+              "Slot Min Delay [ms]",         "Slot Max Delay [ms]",
+            "Slot Distribution [-]"
+};
 
 struct ActionInfo {
     const char* label;
@@ -103,6 +115,12 @@ ComboInfo comboInfo[] = {
     { "IFB",       0, 3 }
 };
 
+ComboInfo comboInfo2[] = {
+    { "",  4, 1 }, { "",  4, 2 },
+    { "",  5, 1 }, { "",  5, 2 },
+    { "", 19, 1 }, { "", 19, 2 }
+};
+
 struct LineInfo {
     const char* label;
     int row;
@@ -128,9 +146,73 @@ DoubleSpinInfo dspinInfo[] = {
     { 3, 1, 0.0, 11000000.0, 0.0 }, { 3, 2, 0.0, 11000000.0, 0.0 },
 };
 
+DoubleSpinInfo dspinInfo2[] = {
+    {  1, 1, 0.0,  10000.0, 2000.0 }, {  1, 2, 0.0,  10000.0, 2000.0 },
+    {  2, 1, 0.0, 100000.0,    0.0 }, {  2, 2, 0.0, 100000.0,    0.0 },
+    {  3, 1, 0.0,    100.0,    0.0 }, {  3, 2, 0.0,    100.0,    0.0 },
+    {  6, 1, 0.0,    100.0,    0.0 }, {  6, 2, 0.0,    100.0,    0.0 },
+    {  7, 1, 0.0,    100.0,    0.0 }, {  7, 2, 0.0,    100.0,    0.0 },
+    {  8, 1, 0.0,    100.0,    0.0 }, {  8, 2, 0.0,    100.0,    0.0 },
+    {  9, 1, 0.0,    100.0,    0.0 }, {  9, 2, 0.0,    100.0,    0.0 },
+    { 10, 1, 0.0,    100.0,    0.0 }, { 10, 2, 0.0,    100.0,    0.0 },
+    { 11, 1, 0.0,    100.0,    0.0 }, { 11, 2, 0.0,    100.0,    0.0 },
+    { 12, 1, 0.0,    100.0,    0.0 }, { 12, 2, 0.0,    100.0,    0.0 },
+    { 13, 1, 0.0,    100.0,    0.0 }, { 13, 2, 0.0,    100.0,    0.0 },
+    { 14, 1, 0.0,    100.0,    0.0 }, { 14, 2, 0.0,    100.0,    0.0 },
+    { 15, 1, 0.0,    100.0,    0.0 }, { 15, 2, 0.0,    100.0,    0.0 },
+    { 16, 1, 0.0,    100.0,    0.0 }, { 16, 2, 0.0,    100.0,    0.0 },
+    { 17, 1, 0.0, 100000.0,    0.0 }, { 17, 2, 0.0, 100000.0,    0.0 },
+    { 18, 1, 0.0, 100000.0,    0.0 }, { 18, 2, 0.0, 100000.0,    0.0 },
+};
+
 }
 
 namespace qtc {
+
+class ConfigDialog : public QDialog
+{
+public:
+    ConfigDialog();
+
+    enum SpinID {
+        IN_LMT_PKT, OUT_LMT_PKT,
+        IN_DLY_JTR, OUT_DLY_JTR,
+        IN_DLY_COR, OUT_DLY_COR,
+        IN_LOS_COR, OUT_LOS_COR,
+        IN_DPL_PCT, OUT_DPL_PCT,
+        IN_DPL_COR, OUT_DPL_COR,
+        IN_CRP_PCT, OUT_CRP_PCT,
+        IN_CRP_COR, OUT_CRP_COR,
+        IN_ROR_PCT, OUT_ROR_PCT,
+        IN_ROR_COR, OUT_ROR_COR,
+        IN_ROR_DST, OUT_ROR_DST,
+        IN_RPK_OVH, OUT_RPK_OVH,
+        IN_RCL_SIZ, OUT_RCL_SIZ,
+        IN_RCL_OVH, OUT_RCL_OVH,
+        IN_SLT_MND, OUT_SLT_MND,
+        IN_SLT_MXD, OUT_SLT_MXD,
+        NUM_DSPINS
+    };
+
+    enum ComboID {
+        IN_DLY_DST, OUT_DLY_DST,
+        IN_LOS_RDM, OUT_LOS_RDM,
+        IN_SLT_DST, OUT_SLT_DST,
+        NUM_COMBOS
+    };
+
+    void setValue(const int& index, const double& value);
+    double spin(const int& index) const;
+    void setText(const int& index, const string& text);
+    string combo(const int& index) const;
+
+private:
+    QDoubleSpinBox* optionSpins_[NUM_DSPINS];
+    QComboBox* optionCombos_[NUM_COMBOS];
+
+    void onResetButtonClicked();
+};
+
 
 class MainWindowImpl
 {
@@ -284,15 +366,15 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 
     self->connect(resetButton, &QPushButton::clicked, [&](){ onClearButtonClicked(); });
     self->connect(applyButton, QOverload<bool>::of(&QPushButton::toggled),
-                  [=](bool on){ onApplyButtonToggled(on); });
+        [=](bool on){ onApplyButtonToggled(on); });
     self->connect(actions[QUIT], &QAction::triggered, [&, self](){ self->close(); });
     self->connect(actions[IMPORT], QOverload<bool>::of(&QAction::triggered),
-            [=](bool on){ onImportActionTriggered(on); });
+        [=](bool on){ onImportActionTriggered(on); });
     self->connect(actions[EXPORT], QOverload<bool>::of(&QAction::triggered),
-            [=](bool on){ onExportActionTriggered(on); });
+        [=](bool on){ onExportActionTriggered(on); });
     self->connect(actions[SETTING], &QAction::triggered, [&](){ config->show(); });
     self->connect(actions[DEBUG], QOverload<bool>::of(&QAction::triggered),
-            [=](bool on){ debugMode = on; });
+        [=](bool on){ debugMode = on; });
 }
 
 
@@ -780,5 +862,99 @@ void MainWindowImpl::finalize()
         start((boost::format("sudo ip link set dev %s down;") % ifbName.c_str()).str());
         start("sudo rmmod ifb;");
         isFinalized = true;
+    }
+}
+
+
+
+ConfigDialog::ConfigDialog()
+    : QDialog()
+{
+    setWindowTitle("Advanced Settings");
+    QVBoxLayout* vbox = new QVBoxLayout;
+    QGridLayout* gbox = new QGridLayout;
+
+    gbox->addWidget(new QLabel("Inbound"), 0, 1);
+    gbox->addWidget(new QLabel("Outbound"), 0, 2);
+
+    for(int i = 0; i < 19; ++i) {
+        QLabel* label = new QLabel(names[i]);
+        gbox->addWidget(label, i + 1, 0);
+    }
+
+    for(int i = 0; i < ConfigDialog::NUM_DSPINS; ++i) {
+        optionSpins_[i] = new QDoubleSpinBox;
+        QDoubleSpinBox* dspin = optionSpins_[i];
+        DoubleSpinInfo info = dspinInfo2[i];
+        dspin->setRange(info.lower, info.upper);
+        dspin->setValue(info.value);
+        gbox->addWidget(dspin, info.row, info.cln);
+    }
+
+    QStringList distributions = { "disabled", "uniform", "normal", "pareto", "paretonormal" };
+    QStringList states = { "disabled", "enabled" };
+    for(int i = 0; i < ConfigDialog::NUM_COMBOS; ++i) {
+        optionCombos_[i] = new QComboBox;
+        QComboBox* combo = optionCombos_[i];
+        if(i == 2 || i == 3) {
+            combo->addItems(states);
+        } else {
+            combo->addItems(distributions);
+        }
+        combo->setCurrentIndex(0);
+        ComboInfo info = comboInfo2[i];
+        gbox->addWidget(combo, info.row, info.cln);
+    }
+
+    QPushButton* resetButton = new QPushButton("&Reset");
+    QPushButton* okButton = new QPushButton("&Ok");
+    okButton->setDefault(true);
+    QDialogButtonBox* buttonBox = new QDialogButtonBox(this);
+    buttonBox->addButton(resetButton, QDialogButtonBox::ResetRole);
+    buttonBox->addButton(okButton, QDialogButtonBox::AcceptRole);
+    connect(resetButton, &QPushButton::clicked, [&](){ onResetButtonClicked(); });
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
+
+    vbox->addLayout(gbox);
+    vbox->addWidget(buttonBox);
+    setLayout(vbox);
+}
+
+
+void ConfigDialog::setValue(const int& index, const double& value)
+{
+    optionSpins_[index]->setValue(value);
+}
+
+
+double ConfigDialog::spin(const int& index) const
+{
+    return optionSpins_[index]->value();
+}
+
+
+void ConfigDialog::setText(const int &index, const string& text)
+{
+    optionCombos_[index]->setCurrentText(text.c_str());
+}
+
+
+string ConfigDialog::combo(const int& index) const
+{
+    return optionCombos_[index]->currentText().toStdString();
+}
+
+
+void ConfigDialog::onResetButtonClicked()
+{
+    for(int i = 0; i < ConfigDialog::NUM_DSPINS; ++i) {
+        QDoubleSpinBox* dspin = optionSpins_[i];
+        DoubleSpinInfo info = dspinInfo2[i];
+        dspin->setRange(info.lower, info.upper);
+        dspin->setValue(info.value);
+    }
+
+    for(int i = 0; i < ConfigDialog::NUM_COMBOS; ++i) {
+        optionCombos_[i]->setCurrentIndex(0);
     }
 }
