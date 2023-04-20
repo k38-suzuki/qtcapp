@@ -201,14 +201,8 @@ public:
         NUM_COMBOS
     };
 
-    void setValue(const int& index, const double& value);
-    double spin(const int& index) const;
-    void setText(const int& index, const string& text);
-    string combo(const int& index) const;
-
-private:
-    QDoubleSpinBox* optionSpins_[NUM_DSPINS];
-    QComboBox* optionCombos_[NUM_COMBOS];
+    QDoubleSpinBox* optionSpins[NUM_DSPINS];
+    QComboBox* optionCombos[NUM_COMBOS];
 
     void onResetButtonClicked();
 };
@@ -393,10 +387,8 @@ bool MainWindow::load(const string& filename)
 bool MainWindowImpl::load(const string& filename)
 {
     QFileInfo info(filename.c_str());
-    QString suffix = info.suffix();
-    if(suffix.isEmpty()) {
-        return false;
-    } else if(suffix != ".qtc") {
+    QString ext = info.suffix();
+    if(ext != "qtc") {
         return false;
     }
 
@@ -414,10 +406,10 @@ bool MainWindowImpl::load(const string& filename)
                 dspins[i]->setValue(in.readLine().toDouble());
             }
             for(int i = 0; i < ConfigDialog::NUM_DSPINS; ++i) {
-                config->setValue(i, in.readLine().toDouble());
+                config->optionSpins[i]->setValue(in.readLine().toDouble());
             }
             for(int i = 0; i < ConfigDialog::NUM_COMBOS; ++i) {
-                config->setText(i, in.readLine().toStdString());
+                config->optionCombos[i]->setCurrentText(in.readLine());
             }
         }
     }
@@ -522,11 +514,11 @@ void MainWindowImpl::onExportActionTriggered(const bool& on)
                 out << spin->value() << endl;
             }
             for(int i = 0; i < ConfigDialog::NUM_DSPINS; ++i) {
-                double value  = config->spin(i);
+                double value  = config->optionSpins[i]->value();
                 out << value << endl;
             }
             for(int i = 0; i < ConfigDialog::NUM_COMBOS; ++i) {
-                string text = config->combo(i);
+                string text = config->optionCombos[i]->currentText().toStdString();
                 out << text.c_str() << endl;
             }
             file.close();
@@ -585,24 +577,24 @@ void MainWindowImpl::update()
     double inboundLossPercent = dspins[IN_LOS_PCT]->value();
     double inboundRateRate = dspins[IN_RAT_RAT]->value();
 
-    double inboundLimitPackets = config->spin(ConfigDialog::IN_LMT_PKT);
-    double inboundDelayJitter = config->spin(ConfigDialog::IN_DLY_JTR);
-    double inboundDelayCorrelation = config->spin(ConfigDialog::IN_DLY_COR);
-    double inboundLossCorrelation = config->spin(ConfigDialog::IN_LOS_COR);
-    double inboundDuplicationPercent = config->spin(ConfigDialog::IN_DPL_PCT);
-    double inboundDuplicationCorrelation = config->spin(ConfigDialog::IN_DPL_COR);
-    double inboundCorruptPercent = config->spin(ConfigDialog::IN_CRP_PCT);
-    double inboundCorruptCorrelation = config->spin(ConfigDialog::IN_CRP_COR);
-    double inboundReorderingPercent = config->spin(ConfigDialog::IN_ROR_PCT);
-    double inboundReorderingCorrelation = config->spin(ConfigDialog::IN_ROR_COR);
-    double inboundReorderingDistance = config->spin(ConfigDialog::IN_ROR_DST);
-    double inboundRatePacketOverhead = config->spin(ConfigDialog::IN_RPK_OVH);
-    double inboundRateCellSize = config->spin(ConfigDialog::IN_RCL_SIZ);
-    double inboundRateCellOverhead = config->spin(ConfigDialog::IN_RCL_OVH);
-    double inboundSlotMinDelay = config->spin(ConfigDialog::IN_SLT_MND);
-    double inboundSlotMaxDelay = config->spin(ConfigDialog::IN_SLT_MXD);
+    double inboundLimitPackets = config->optionSpins[ConfigDialog::IN_LMT_PKT]->value();
+    double inboundDelayJitter = config->optionSpins[ConfigDialog::IN_DLY_JTR]->value();
+    double inboundDelayCorrelation = config->optionSpins[ConfigDialog::IN_DLY_COR]->value();
+    double inboundLossCorrelation = config->optionSpins[ConfigDialog::IN_LOS_COR]->value();
+    double inboundDuplicationPercent = config->optionSpins[ConfigDialog::IN_DPL_PCT]->value();
+    double inboundDuplicationCorrelation = config->optionSpins[ConfigDialog::IN_DPL_COR]->value();
+    double inboundCorruptPercent = config->optionSpins[ConfigDialog::IN_CRP_PCT]->value();
+    double inboundCorruptCorrelation = config->optionSpins[ConfigDialog::IN_CRP_COR]->value();
+    double inboundReorderingPercent = config->optionSpins[ConfigDialog::IN_ROR_PCT]->value();
+    double inboundReorderingCorrelation = config->optionSpins[ConfigDialog::IN_ROR_COR]->value();
+    double inboundReorderingDistance = config->optionSpins[ConfigDialog::IN_ROR_DST]->value();
+    double inboundRatePacketOverhead = config->optionSpins[ConfigDialog::IN_RPK_OVH]->value();
+    double inboundRateCellSize = config->optionSpins[ConfigDialog::IN_RCL_SIZ]->value();
+    double inboundRateCellOverhead = config->optionSpins[ConfigDialog::IN_RCL_OVH]->value();
+    double inboundSlotMinDelay = config->optionSpins[ConfigDialog::IN_SLT_MND]->value();
+    double inboundSlotMaxDelay = config->optionSpins[ConfigDialog::IN_SLT_MXD]->value();
 
-    string item = config->combo(ConfigDialog::IN_DLY_DST);
+    string item = config->optionCombos[ConfigDialog::IN_DLY_DST]->currentText().toStdString();
     bool isCheckedInboundDelayDistribution = true;
     string inboundDelayDistribution;
     if(item == "disabled") {
@@ -611,13 +603,13 @@ void MainWindowImpl::update()
         inboundDelayDistribution = item;
     }
 
-    item = config->combo(ConfigDialog::IN_LOS_RDM);
+    item = config->optionCombos[ConfigDialog::IN_LOS_RDM]->currentText().toStdString();
     bool isCheckedInboundLossRandom = true;
     if(item == "disabled") {
         isCheckedInboundLossRandom = false;
     }
 
-    item = config->combo(ConfigDialog::IN_SLT_DST);
+    item = config->optionCombos[ConfigDialog::IN_SLT_DST]->currentText().toStdString();
     bool isCheckedInboundSlotDistribution = true;
     string inboundSlotDistribution;
     if(item == "disabled") {
@@ -630,24 +622,24 @@ void MainWindowImpl::update()
     double outboundLossPercent = dspins[OUT_LOS_PCT]->value();
     double outboundRateRate = dspins[OUT_RAT_RAT]->value();
 
-    double outboundLimitPackets = config->spin(ConfigDialog::OUT_LMT_PKT);
-    double outboundDelayJitter = config->spin(ConfigDialog::OUT_DLY_JTR);
-    double outboundDelayCorrelation = config->spin(ConfigDialog::OUT_DLY_COR);
-    double outboundLossCorrelation = config->spin(ConfigDialog::OUT_LOS_COR);
-    double outboundDuplicationPercent = config->spin(ConfigDialog::OUT_DPL_PCT);
-    double outboundDuplicationCorrelation = config->spin(ConfigDialog::OUT_DPL_COR);
-    double outboundCorruptPercent = config->spin(ConfigDialog::OUT_CRP_PCT);
-    double outboundCorruptCorrelation = config->spin(ConfigDialog::OUT_CRP_COR);
-    double outboundReorderingPercent = config->spin(ConfigDialog::OUT_ROR_PCT);
-    double outboundReorderingCorrelation = config->spin(ConfigDialog::OUT_ROR_COR);
-    double outboundReorderingDistance = config->spin(ConfigDialog::OUT_ROR_DST);
-    double outboundRatePacketOverhead = config->spin(ConfigDialog::OUT_RPK_OVH);
-    double outboundRateCellSize = config->spin(ConfigDialog::OUT_RCL_SIZ);
-    double outboundRateCellOverhead = config->spin(ConfigDialog::OUT_RCL_OVH);
-    double outboundSlotMinDelay = config->spin(ConfigDialog::OUT_SLT_MND);
-    double outboundSlotMaxDelay = config->spin(ConfigDialog::OUT_SLT_MXD);
+    double outboundLimitPackets = config->optionSpins[ConfigDialog::OUT_LMT_PKT]->value();
+    double outboundDelayJitter = config->optionSpins[ConfigDialog::OUT_DLY_JTR]->value();
+    double outboundDelayCorrelation = config->optionSpins[ConfigDialog::OUT_DLY_COR]->value();
+    double outboundLossCorrelation = config->optionSpins[ConfigDialog::OUT_LOS_COR]->value();
+    double outboundDuplicationPercent = config->optionSpins[ConfigDialog::OUT_DPL_PCT]->value();
+    double outboundDuplicationCorrelation = config->optionSpins[ConfigDialog::OUT_DPL_COR]->value();
+    double outboundCorruptPercent = config->optionSpins[ConfigDialog::OUT_CRP_PCT]->value();
+    double outboundCorruptCorrelation = config->optionSpins[ConfigDialog::OUT_CRP_COR]->value();
+    double outboundReorderingPercent = config->optionSpins[ConfigDialog::OUT_ROR_PCT]->value();
+    double outboundReorderingCorrelation = config->optionSpins[ConfigDialog::OUT_ROR_COR]->value();
+    double outboundReorderingDistance = config->optionSpins[ConfigDialog::OUT_ROR_DST]->value();
+    double outboundRatePacketOverhead = config->optionSpins[ConfigDialog::OUT_RPK_OVH]->value();
+    double outboundRateCellSize = config->optionSpins[ConfigDialog::OUT_RCL_SIZ]->value();
+    double outboundRateCellOverhead = config->optionSpins[ConfigDialog::OUT_RCL_OVH]->value();
+    double outboundSlotMinDelay = config->optionSpins[ConfigDialog::OUT_SLT_MND]->value();
+    double outboundSlotMaxDelay = config->optionSpins[ConfigDialog::OUT_SLT_MXD]->value();
 
-    item = config->combo(ConfigDialog::OUT_DLY_DST);
+    item = config->optionCombos[ConfigDialog::OUT_DLY_DST]->currentText().toStdString();
     bool isCheckedOutboundDelayDistribution = true;
     string outboundDelayDistribution;
     if(item == "disabled") {
@@ -656,13 +648,13 @@ void MainWindowImpl::update()
         outboundDelayDistribution = item;
     }
 
-    item = config->combo(ConfigDialog::OUT_LOS_RDM);
+    item = config->optionCombos[ConfigDialog::OUT_LOS_RDM]->currentText().toStdString();
     bool isCheckedOutboundLossRandom = true;
     if(item == "disabled") {
         isCheckedOutboundLossRandom = false;
     }
 
-    item = config->combo(ConfigDialog::OUT_SLT_DST);
+    item = config->optionCombos[ConfigDialog::OUT_SLT_DST]->currentText().toStdString();
     bool isCheckedOutboundSlotDistribution = true;
     string outboundSlotDistribution;
     if(item == "disabled") {
@@ -883,8 +875,8 @@ ConfigDialog::ConfigDialog()
     }
 
     for(int i = 0; i < ConfigDialog::NUM_DSPINS; ++i) {
-        optionSpins_[i] = new QDoubleSpinBox;
-        QDoubleSpinBox* dspin = optionSpins_[i];
+        optionSpins[i] = new QDoubleSpinBox;
+        QDoubleSpinBox* dspin = optionSpins[i];
         DoubleSpinInfo info = dspinInfo2[i];
         dspin->setRange(info.lower, info.upper);
         dspin->setValue(info.value);
@@ -894,8 +886,8 @@ ConfigDialog::ConfigDialog()
     QStringList distributions = { "disabled", "uniform", "normal", "pareto", "paretonormal" };
     QStringList states = { "disabled", "enabled" };
     for(int i = 0; i < ConfigDialog::NUM_COMBOS; ++i) {
-        optionCombos_[i] = new QComboBox;
-        QComboBox* combo = optionCombos_[i];
+        optionCombos[i] = new QComboBox;
+        QComboBox* combo = optionCombos[i];
         if(i == 2 || i == 3) {
             combo->addItems(states);
         } else {
@@ -921,40 +913,16 @@ ConfigDialog::ConfigDialog()
 }
 
 
-void ConfigDialog::setValue(const int& index, const double& value)
-{
-    optionSpins_[index]->setValue(value);
-}
-
-
-double ConfigDialog::spin(const int& index) const
-{
-    return optionSpins_[index]->value();
-}
-
-
-void ConfigDialog::setText(const int &index, const string& text)
-{
-    optionCombos_[index]->setCurrentText(text.c_str());
-}
-
-
-string ConfigDialog::combo(const int& index) const
-{
-    return optionCombos_[index]->currentText().toStdString();
-}
-
-
 void ConfigDialog::onResetButtonClicked()
 {
     for(int i = 0; i < ConfigDialog::NUM_DSPINS; ++i) {
-        QDoubleSpinBox* dspin = optionSpins_[i];
+        QDoubleSpinBox* dspin = optionSpins[i];
         DoubleSpinInfo info = dspinInfo2[i];
         dspin->setRange(info.lower, info.upper);
         dspin->setValue(info.value);
     }
 
     for(int i = 0; i < ConfigDialog::NUM_COMBOS; ++i) {
-        optionCombos_[i]->setCurrentIndex(0);
+        optionCombos[i]->setCurrentIndex(0);
     }
 }
