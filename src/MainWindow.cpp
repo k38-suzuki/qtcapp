@@ -860,7 +860,6 @@ void MainWindowImpl::finalize()
 
 
 ConfigDialog::ConfigDialog()
-    : QDialog()
 {
     setWindowTitle("Advanced Settings");
     QVBoxLayout* vbox = new QVBoxLayout;
@@ -874,7 +873,7 @@ ConfigDialog::ConfigDialog()
         gbox->addWidget(label, i + 1, 0);
     }
 
-    for(int i = 0; i < ConfigDialog::NUM_DSPINS; ++i) {
+    for(int i = 0; i < NUM_DSPINS; ++i) {
         optionSpins[i] = new QDoubleSpinBox;
         QDoubleSpinBox* dspin = optionSpins[i];
         DoubleSpinInfo info = dspinInfo2[i];
@@ -885,7 +884,7 @@ ConfigDialog::ConfigDialog()
 
     QStringList distributions = { "disabled", "uniform", "normal", "pareto", "paretonormal" };
     QStringList states = { "disabled", "enabled" };
-    for(int i = 0; i < ConfigDialog::NUM_COMBOS; ++i) {
+    for(int i = 0; i < NUM_COMBOS; ++i) {
         optionCombos[i] = new QComboBox;
         QComboBox* combo = optionCombos[i];
         if(i == 2 || i == 3) {
@@ -915,14 +914,14 @@ ConfigDialog::ConfigDialog()
 
 void ConfigDialog::onResetButtonClicked()
 {
-    for(int i = 0; i < ConfigDialog::NUM_DSPINS; ++i) {
+    for(int i = 0; i < NUM_DSPINS; ++i) {
         QDoubleSpinBox* dspin = optionSpins[i];
         DoubleSpinInfo info = dspinInfo2[i];
         dspin->setRange(info.lower, info.upper);
         dspin->setValue(info.value);
     }
 
-    for(int i = 0; i < ConfigDialog::NUM_COMBOS; ++i) {
+    for(int i = 0; i < NUM_COMBOS; ++i) {
         optionCombos[i]->setCurrentIndex(0);
     }
 }
