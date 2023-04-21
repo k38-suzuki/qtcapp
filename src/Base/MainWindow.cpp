@@ -356,6 +356,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     vbox->addLayout(gbox);
     vbox->addSpacing(10);
     vbox->addLayout(bsgbox);
+    vbox->addStretch();
     centralWidget->setLayout(vbox);
     self->setCentralWidget(centralWidget);
 
