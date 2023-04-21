@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/qtcapp">
-        <file>icon/qtcapp.png</file>
-    </qresource>
-</RCC>

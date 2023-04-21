@@ -1,5 +1,6 @@
 /**
-    @author Kenta Suzuki
+   \file
+   \author Kenta Suzuki
 */
 
 #ifndef QTC_MAIN_WINDOW_H

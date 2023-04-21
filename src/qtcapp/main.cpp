@@ -1,10 +1,10 @@
-/*!
-  @file
-  @author Kenta Suzuki
+/**
+   \file
+   \author Kenta Suzuki
 */
 
 #include <QApplication>
-#include "MainWindow.h"
+#include <qtc/MainWindow>
 
 using namespace qtc;
 

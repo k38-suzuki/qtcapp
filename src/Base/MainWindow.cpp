@@ -1,5 +1,6 @@
 /**
-    @author Kenta Suzuki
+   \file
+   \author Kenta Suzuki
 */
 
 #include "MainWindow.h"
