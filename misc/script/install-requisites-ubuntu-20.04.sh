@@ -1,6 +1,7 @@
 #!/bin/sh
 
-sudo apt -y install \
+sudo --preserve-env=DEBIAN_FRONTEND,TZ \
+apt-get -y install \
 build-essential \
 cmake-curses-gui \
 libboost-all-dev \
@@ -10,7 +11,6 @@ libqt5svg5-dev \
 qt5-style-plugins
 
 LOGNAME=$(logname)
-
 sudo echo "$LOGNAME    ALL=NOPASSWD: /sbin/modprobe" >> /etc/sudoers
 sudo echo "$LOGNAME    ALL=NOPASSWD: /sbin/ip" >> /etc/sudoers
 sudo echo "$LOGNAME    ALL=NOPASSWD: /sbin/rmmod" >> /etc/sudoers

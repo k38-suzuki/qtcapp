@@ -4,13 +4,12 @@
 */
 
 #include <QApplication>
-#include <qtc/MainWindow>
+#include "qtcapp/qtcapp.h"
 
-using namespace qtc;
+using namespace qtcapp;
 
 int main(int argc, char** argv)
 {
-
     QApplication app(argc, argv);
     MainWindow w;
     for(int i = 0; i < argc; ++i) {

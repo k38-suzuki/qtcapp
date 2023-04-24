@@ -1,5 +1,5 @@
 # qtcapp
-Application of network emulator
+ROS package for network emulation
 
 Document of Qtcapp (in Japanese)
 https://k38-suzuki.github.io/qtcapp-doc

@@ -3,7 +3,7 @@
    \author Kenta Suzuki
 */
 
-#include "MainWindow.h"
+#include "qtcapp/qtcapp.h"
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialog>
@@ -30,7 +30,7 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 
-using namespace qtc;
+using namespace qtcapp;
 using namespace std;
 
 namespace {
@@ -168,7 +168,7 @@ DoubleSpinInfo dspinInfo2[] = {
 
 }
 
-namespace qtc {
+namespace qtcapp {
 
 class ConfigDialog : public QDialog
 {
@@ -266,7 +266,7 @@ MainWindow::MainWindow(QWidget* parent)
 MainWindowImpl::MainWindowImpl(MainWindow* self)
     : self(self)
 {
-    self->setWindowTitle("Qtcapp");
+    self->setWindowTitle("qtcapp");
 
     static const char* topMenus[] ={ "&File", "&Edit", "&View", "&Option", "&Help" };
     for(int i = 0; i < NUM_MENUS; ++i) {

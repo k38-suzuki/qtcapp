@@ -3,16 +3,17 @@
    \author Kenta Suzuki
 */
 
-#ifndef QTC_MAIN_WINDOW_H
-#define QTC_MAIN_WINDOW_H
+#ifndef QTCAPP_MAIN_WINDOW_H
+#define QTCAPP_MAIN_WINDOW_H
 
 #include <QMainWindow>
+#include "exportdecl.h"
 
-namespace qtc {
+namespace qtcapp {
 
 class MainWindowImpl;
 
-class MainWindow : public QMainWindow
+class DECLSPEC MainWindow : public QMainWindow
 {
     Q_OBJECT
 public:
@@ -28,4 +29,4 @@ private:
 
 }
 
-#endif // QTC_MAIN_WINDOW_H
+#endif // QTCAPP_MAIN_WINDOW_H
