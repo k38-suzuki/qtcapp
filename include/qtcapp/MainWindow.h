@@ -9,7 +9,7 @@
 #include <QMainWindow>
 #include "exportdecl.h"
 
-namespace qtcapp {
+namespace netem {
 
 class MainWindowImpl;
 

@@ -14,8 +14,8 @@ endif()
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
-set(sources src/${PROJECT_NAME}/qtcapp.cpp)
-set(headers include/${PROJECT_NAME}/qtcapp.h)
+set(sources src/${PROJECT_NAME}/MainWindow.cpp)
+set(headers include/${PROJECT_NAME}/MainWindow.h)
 
 option(USE_CATKIN_MAKE "Use catkin_make" ON)
 if(NOT USE_CATKIN_MAKE)

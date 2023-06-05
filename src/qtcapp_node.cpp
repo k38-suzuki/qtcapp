@@ -4,9 +4,9 @@
 */
 
 #include <QApplication>
-#include "qtcapp/qtcapp.h"
+#include "qtcapp/MainWindow.h"
 
-using namespace qtcapp;
+using namespace netem;
 
 int main(int argc, char** argv)
 {

@@ -3,7 +3,7 @@
    \author Kenta Suzuki
 */
 
-#include "qtcapp/qtcapp.h"
+#include "qtcapp/MainWindow.h"
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialog>
@@ -30,7 +30,7 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 
-using namespace qtcapp;
+using namespace netem;
 using namespace std;
 
 namespace {
@@ -168,7 +168,7 @@ DoubleSpinInfo dspinInfo2[] = {
 
 }
 
-namespace qtcapp {
+namespace netem {
 
 class ConfigDialog : public QDialog
 {
