@@ -14,6 +14,9 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QGridLayout>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
@@ -21,7 +24,6 @@
 #include <QPalette>
 #include <QProcess>
 #include <QPushButton>
-#include <QTextStream>
 #include <QVBoxLayout>
 #include <boost/format.hpp>
 #include <iostream>
@@ -241,8 +243,6 @@ public:
     bool isUpdated;
     bool isFinalized;
 
-    bool load(const string& filename);
-
     void onClearButtonClicked();
     void onApplyButtonToggled(const bool& on);
     void onImportActionTriggered(const bool& on);
@@ -253,6 +253,10 @@ public:
     void clear();
     void update();
     void close();
+    bool save(const string& filename);
+    bool load(const string& filename);
+    void read(const QJsonObject& json);
+    void write(QJsonObject& json) const;
 };
 
 }
@@ -393,39 +397,6 @@ bool MainWindow::load(const string& filename)
 }
 
 
-bool MainWindowImpl::load(const string& filename)
-{
-    QFileInfo info(filename.c_str());
-    QString ext = info.suffix();
-    if(ext != "qtc") {
-        return false;
-    }
-
-    if(!filename.empty()) {
-        QFile file(filename.c_str());
-        if(file.open(QIODevice::ReadOnly)) {
-            QTextStream in(&file);
-            for(int i = 0; i < NUM_COMBOS; ++i) {
-                combos[i]->setCurrentText(in.readLine());
-            }
-            for(int i = 0; i < NUM_LINES; ++i) {
-                lines[i]->setText(in.readLine());
-            }
-            for(int i = 0; i < NUM_DSPINS; ++i) {
-                dspins[i]->setValue(in.readLine().toDouble());
-            }
-            for(int i = 0; i < ConfigDialog::NUM_DSPINS; ++i) {
-                config->optionSpins[i]->setValue(in.readLine().toDouble());
-            }
-            for(int i = 0; i < ConfigDialog::NUM_COMBOS; ++i) {
-                config->optionCombos[i]->setCurrentText(in.readLine());
-            }
-        }
-    }
-    return true;
-}
-
-
 void MainWindowImpl::onClearButtonClicked()
 {
     for(int i = 0; i < NUM_COMBOS; ++i) {
@@ -459,21 +430,20 @@ void MainWindowImpl::onApplyButtonToggled(const bool& on)
 void MainWindowImpl::onImportActionTriggered(const bool& on)
 {
     QFileDialog dialog(self);
-    dialog.setWindowTitle("Open a configuration file");
+    dialog.setOption(QFileDialog::DontUseNativeDialog);
+    dialog.setWindowTitle("Import a file");
     dialog.setFileMode(QFileDialog::ExistingFile);
     dialog.setViewMode(QFileDialog::List);
-    dialog.setLabelText(QFileDialog::Accept, "Open");
+    dialog.setLabelText(QFileDialog::Accept, "Import");
     dialog.setLabelText(QFileDialog::Reject, "Cancel");
-    dialog.setOption(QFileDialog::DontUseNativeDialog);
 
     QStringList filters;
-    filters << "QTC files (*.qtc)";
+    filters << "JSON files (*.json)";
 //    filters << "Any files (*)";
     dialog.setNameFilters(filters);
 
-    QString filename;
     if(dialog.exec()) {
-        filename = dialog.selectedFiles().front();
+        QString filename = dialog.selectedFiles().front();
         self->load(filename.toStdString());
     }
 }
@@ -482,55 +452,23 @@ void MainWindowImpl::onImportActionTriggered(const bool& on)
 void MainWindowImpl::onExportActionTriggered(const bool& on)
 {
     QFileDialog dialog(self);
-    dialog.setWindowTitle("Save a configuration file");
+    dialog.setOption(QFileDialog::DontUseNativeDialog);
+    dialog.setWindowTitle("Export a file");
     dialog.setFileMode(QFileDialog::AnyFile);
     dialog.setAcceptMode(QFileDialog::AcceptSave);
     dialog.setViewMode(QFileDialog::List);
-    dialog.setLabelText(QFileDialog::Accept, "Save");
+    dialog.setLabelText(QFileDialog::Accept, "Export");
     dialog.setLabelText(QFileDialog::Reject, "Cancel");
-//    dialog.setOption(QFileDialog::DontConfirmOverwrite);
-    dialog.setOption(QFileDialog::DontUseNativeDialog);
 
     QStringList filters;
-    filters << "QTC files (*.qtc)";
+    filters << "JSON files (*.json)";
 //    filters << "Any files (*)";
     dialog.setNameFilters(filters);
 
-    QString filename;
-    if(dialog.exec() == QDialog::Accepted) {
-        filename = dialog.selectedFiles().front();
-        QFileInfo info(filename);
-        QString suffix = info.suffix();
-        if(suffix.isEmpty()) {
-            filename += ".qtc";
-        }
-    }
-
-    if(!filename.isEmpty()) {
-        QFile file(filename);
-        if(file.open(QIODevice::WriteOnly)) {
-            QTextStream out(&file);
-            for(int i = 0; i < NUM_COMBOS; ++i) {
-                QComboBox* combo = combos[i];
-                out << combo->currentText() << endl;
-            }
-            for(int i = 0; i < NUM_LINES; ++i) {
-                QLineEdit* line = lines[i];
-                out << line->text() << endl;
-            }
-            for(int i = 0; i < NUM_DSPINS; ++i) {
-                QDoubleSpinBox* spin = dspins[i];
-                out << spin->value() << endl;
-            }
-            for(int i = 0; i < ConfigDialog::NUM_DSPINS; ++i) {
-                double value  = config->optionSpins[i]->value();
-                out << value << endl;
-            }
-            for(int i = 0; i < ConfigDialog::NUM_COMBOS; ++i) {
-                string text = config->optionCombos[i]->currentText().toStdString();
-                out << text.c_str() << endl;
-            }
-            file.close();
+    if(dialog.exec()) {
+        string filename = dialog.selectedFiles().front().toStdString();
+        if(!filename.empty()) {
+            save(filename);
         }
     }
 }
@@ -869,6 +807,134 @@ void MainWindowImpl::close()
     }
 }
 
+
+bool MainWindowImpl::save(const string& filename)
+{
+    QString fileName = filename.c_str();
+    QFileInfo fileInfo(fileName);
+    QString ext = fileInfo.suffix();
+    if(ext.isEmpty()) {
+        fileName += ".json";
+    }
+
+    QFile saveFile(fileName);
+    if(!saveFile.open(QIODevice::WriteOnly)) {
+        qWarning("Couldn't open save file.");
+        return false;
+    }
+
+    QJsonObject object;
+    write(object);
+    saveFile.write(QJsonDocument(object).toJson());
+
+    return true;
+}
+
+
+bool MainWindowImpl::load(const string& filename)
+{
+    QFile loadFile(filename.c_str());
+    if(!loadFile.open(QIODevice::ReadOnly)) {
+        qWarning("Couldn't open save file.");
+        return false;
+    }
+
+    QByteArray saveData = loadFile.readAll();
+
+    QJsonDocument loadDoc(QJsonDocument::fromJson(saveData));
+
+    read(loadDoc.object());
+
+    return true;
+}
+
+
+void MainWindowImpl::read(const QJsonObject& json)
+{
+    const QJsonValue v0 = json["combo"];
+    if(v0.isArray()) {
+        const QJsonArray comboArray = v0.toArray();
+        int i = 0;
+        for(const QJsonValue &combo : comboArray) {
+            combos[i]->setCurrentIndex(combo.toInt());
+            ++i;
+        }
+    }
+
+    const QJsonValue v1 = json["line"];
+    if(v1.isArray()) {
+        const QJsonArray lineArray = v1.toArray();
+        int i = 0;
+        for(const QJsonValue &line : lineArray) {
+            lines[i]->setText(line.toString());
+            ++i;
+        }
+    }
+
+    const QJsonValue v2 = json["spin"];
+    if(v2.isArray()) {
+        const QJsonArray spinArray = v2.toArray();
+        int i = 0;
+        for(const QJsonValue &spin : spinArray) {
+            dspins[i]->setValue(spin.toDouble());
+            ++i;
+        }
+    }
+
+    const QJsonValue v3 = json["option0"];
+    if(v3.isArray()) {
+        const QJsonArray option0Array = v3.toArray();
+        int i = 0;
+        for(const QJsonValue &option0 : option0Array) {
+            config->optionSpins[i]->setValue(option0.toDouble());
+            ++i;
+        }
+    }
+
+    const QJsonValue v4 = json["option1"];
+    if(v4.isArray()) {
+        const QJsonArray option1Array = v4.toArray();
+        int i = 0;
+        for(const QJsonValue &option1 : option1Array) {
+            config->optionCombos[i]->setCurrentIndex(option1.toInt());
+            ++i;
+        }
+    }
+}
+
+
+void MainWindowImpl::write(QJsonObject& json) const
+{
+    QJsonArray comboArray;
+    for(int i = 0; i < NUM_COMBOS; ++i) {
+        comboArray.append(combos[i]->currentIndex());
+    }
+    json["combo"] = comboArray;
+
+    QJsonArray lineArray;
+    for(int i = 0; i < NUM_LINES; ++i) {
+        lineArray.append(lines[i]->text());
+    }
+    json["line"] = lineArray;
+
+    QJsonArray spinArray;
+    for(int i = 0; i < NUM_DSPINS; ++i) {
+        spinArray.append(dspins[i]->value());
+    }
+    json["spin"] = spinArray;
+
+    QJsonArray option0Array;
+    for(int i = 0; i < ConfigDialog::NUM_DSPINS; ++i) {
+        option0Array.append(config->optionSpins[i]->value());
+    }
+    json["option0"] = option0Array;
+
+    QJsonArray option1Array;
+    for(int i = 0; i < ConfigDialog::NUM_COMBOS; ++i) {
+        option1Array.append(config->optionCombos[i]->currentIndex());
+    }
+    json["option1"] = option1Array;
+}
 
 
 ConfigDialog::ConfigDialog()
