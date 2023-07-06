@@ -30,14 +30,15 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 
+// #define DEBUG
+
 using namespace netem;
 using namespace std;
 
 namespace {
 
 enum MenuID {
-    FILE, EDIT,
-    VIEW, OPTION,
+    FILE, EDIT, OPTION,
     HELP, NUM_MENUS
 };
 
@@ -101,8 +102,7 @@ ActionInfo actionInfo[] = {
     { "Import",            false, false,  true,   FILE },
     { "Export",            false, false,  true,   FILE },
     { "Quit",              false, false,  true,   FILE },
-    { "Advanced settings", false, false, false, OPTION },
-    { "Debug mode",         true, false,  true, OPTION }
+    { "Advanced settings", false, false,  true, OPTION },
 };
 
 struct ComboInfo {
@@ -218,7 +218,7 @@ public:
 
     enum ActionID {
         IMPORT, EXPORT, QUIT,
-        SETTING, DEBUG, NUM_ACTIONS
+        SETTING, NUM_ACTIONS
     };
     enum ComboID { IFC, IFB, NUM_COMBOS };
     enum LineID { SRC, DST, NUM_LINES };
@@ -238,7 +238,6 @@ public:
 
     QProcess process;
     ConfigDialog* config;
-    bool debugMode;
     bool isUpdated;
     bool isFinalized;
 
@@ -271,7 +270,7 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
 {
     self->setWindowTitle("qtcapp");
 
-    static const char* topMenus[] ={ "&File", "&Edit", "&View", "&Option", "&Help" };
+    static const char* topMenus[] ={ "&File", "&Edit", "&Option", "&Help" };
     for(int i = 0; i < NUM_MENUS; ++i) {
         menus[i] = self->menuBar()->addMenu(topMenus[i]);
     }
@@ -286,7 +285,6 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
         menus[info.menu]->addAction(action);
     }
 
-    debugMode = false;
     isUpdated = false;
     isFinalized = true;
 
@@ -372,8 +370,6 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     self->connect(actions[EXPORT], QOverload<bool>::of(&QAction::triggered),
         [=](bool on){ onExportActionTriggered(on); });
     self->connect(actions[SETTING], &QAction::triggered, [&](){ config->show(); });
-    self->connect(actions[DEBUG], QOverload<bool>::of(&QAction::triggered),
-        [=](bool on){ debugMode = on; });
 
     process.start("bash");
 }
@@ -556,14 +552,14 @@ void MainWindowImpl::start()
 
 void MainWindowImpl::write(const string& program)
 {
-    if(!debugMode) {
-        QByteArray data;
-        data.append(QString(program.c_str()));
-        data.append("\n");
-        process.write(data);
-    } else {
-        cout << program << endl;
-    }
+    QByteArray data;
+    data.append(QString(program.c_str()));
+    data.append("\n");
+    process.write(data);
+
+#ifdef DEBUG
+    cout << program << endl;
+#endif
 }
 
 
