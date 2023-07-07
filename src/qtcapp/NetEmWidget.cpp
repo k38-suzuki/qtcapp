@@ -216,8 +216,8 @@ public:
     bool isFinalized;
     bool isStarted;
 
-    void onImportButtonClicked();
-    void onExportButtonClicked();
+    void onOpenButtonClicked();
+    void onSaveButtonClicked();
     void onClearButtonClicked();
     void onStartButtonClicked();
     void onStopButtonClicked();
@@ -311,14 +311,14 @@ NetEmWidgetImpl::NetEmWidgetImpl(NetEmWidget* self)
         configBox->addWidget(dspin, info.row, info.cln);
     }
 
-    QPushButton* importButton = new QPushButton("");
-    QIcon importIcon = QIcon::fromTheme("document-open");
-    importButton->setIcon(importIcon);
-    importButton->setToolTip("Import settings");
-    QPushButton* exportButton = new QPushButton("");
-    QIcon exportIcon = QIcon::fromTheme("document-save");
-    exportButton->setIcon(exportIcon);
-    exportButton->setToolTip("Export settings");
+    QPushButton* openButton = new QPushButton("");
+    QIcon openIcon = QIcon::fromTheme("document-open");
+    openButton->setIcon(openIcon);
+    openButton->setToolTip("Load settings");
+    QPushButton* saveButton = new QPushButton("");
+    QIcon saveIcon = QIcon::fromTheme("document-save");
+    saveButton->setIcon(saveIcon);
+    saveButton->setToolTip("Save settings");
     QPushButton* optionButton = new QPushButton("");
     QIcon optionIcon = QIcon::fromTheme("preferences-system");
     optionButton->setIcon(optionIcon);
@@ -328,8 +328,8 @@ NetEmWidgetImpl::NetEmWidgetImpl(NetEmWidget* self)
     QPushButton* clearButton = new QPushButton("Clear");
 
     QHBoxLayout* hbox = new QHBoxLayout;
-    hbox->addWidget(importButton);
-    hbox->addWidget(exportButton);
+    hbox->addWidget(openButton);
+    hbox->addWidget(saveButton);
     hbox->addWidget(optionButton);
     hbox->addStretch();
     hbox->addWidget(startButton);
@@ -343,8 +343,8 @@ NetEmWidgetImpl::NetEmWidgetImpl(NetEmWidget* self)
     vbox->addStretch();
     self->setLayout(vbox);
 
-    self->connect(importButton, &QPushButton::clicked, [&](){ onImportButtonClicked(); });
-    self->connect(exportButton, &QPushButton::clicked, [&](){ onExportButtonClicked(); });
+    self->connect(openButton, &QPushButton::clicked, [&](){ onOpenButtonClicked(); });
+    self->connect(saveButton, &QPushButton::clicked, [&](){ onSaveButtonClicked(); });
     self->connect(clearButton, &QPushButton::clicked, [&](){ onClearButtonClicked(); });
     self->connect(optionButton, &QPushButton::clicked, [&](){ config->show(); });
     self->connect(startButton, &QPushButton::clicked, [&](){ onStartButtonClicked(); });
@@ -366,14 +366,14 @@ NetEmWidgetImpl::~NetEmWidgetImpl()
 }
 
 
-void NetEmWidgetImpl::onImportButtonClicked()
+void NetEmWidgetImpl::onOpenButtonClicked()
 {
     QFileDialog dialog(self);
     dialog.setOption(QFileDialog::DontUseNativeDialog);
-    dialog.setWindowTitle("Import a file");
+    dialog.setWindowTitle("Load a file");
     dialog.setFileMode(QFileDialog::ExistingFile);
     dialog.setViewMode(QFileDialog::List);
-    dialog.setLabelText(QFileDialog::Accept, "Import");
+    dialog.setLabelText(QFileDialog::Accept, "Load");
     dialog.setLabelText(QFileDialog::Reject, "Cancel");
 
     QStringList filters;
@@ -388,15 +388,15 @@ void NetEmWidgetImpl::onImportButtonClicked()
 }
 
 
-void NetEmWidgetImpl::onExportButtonClicked()
+void NetEmWidgetImpl::onSaveButtonClicked()
 {
     QFileDialog dialog(self);
     dialog.setOption(QFileDialog::DontUseNativeDialog);
-    dialog.setWindowTitle("Export a file");
+    dialog.setWindowTitle("Save a file");
     dialog.setFileMode(QFileDialog::AnyFile);
     dialog.setAcceptMode(QFileDialog::AcceptSave);
     dialog.setViewMode(QFileDialog::List);
-    dialog.setLabelText(QFileDialog::Accept, "Export");
+    dialog.setLabelText(QFileDialog::Accept, "Save");
     dialog.setLabelText(QFileDialog::Reject, "Cancel");
 
     QStringList filters;
