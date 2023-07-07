@@ -4,7 +4,7 @@
 */
 
 #include <QApplication>
-#include "qtcapp/MainWindow.h"
+#include "qtcapp/NetEmWidget.h"
 
 using namespace netem;
 
@@ -12,11 +12,7 @@ int main(int argc, char** argv)
 {
     QApplication app(argc, argv);
 
-    MainWindow w;
-    for(int i = 0; i < argc; ++i) {
-        w.load(QString(argv[i]).toStdString());
-    }
+    NetEmWidget w;
     w.show();
-
     return app.exec();
 }

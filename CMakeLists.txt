@@ -14,8 +14,8 @@ endif()
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
-set(sources src/${PROJECT_NAME}/MainWindow.cpp)
-set(headers include/${PROJECT_NAME}/MainWindow.h)
+set(sources src/${PROJECT_NAME}/NetEmWidget.cpp)
+set(headers include/${PROJECT_NAME}/NetEmWidget.h)
 
 option(USE_CATKIN_MAKE "Use catkin_make" ON)
 if(NOT USE_CATKIN_MAKE)
@@ -37,7 +37,7 @@ if(NOT USE_CATKIN_MAKE)
     FILE qtcapp-config.cmake
     DESTINATION lib/cmake/qtcapp)
 
-  add_executable(${PROJECT_NAME}_node src/qtcapp_node.cpp)
+  add_executable(${PROJECT_NAME}_node src/netem_node.cpp)
   target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME})
 
   install(TARGETS ${PROJECT_NAME}_node
@@ -68,7 +68,7 @@ else()
   add_library(${PROJECT_NAME} ${sources} ${headers})
   target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} Qt5::Widgets)
 
-  add_executable(${PROJECT_NAME}_node src/qtcapp_node.cpp)
+  add_executable(${PROJECT_NAME}_node src/netem_node.cpp)
   target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES} ${PROJECT_NAME})
 
   install(TARGETS ${PROJECT_NAME}_node

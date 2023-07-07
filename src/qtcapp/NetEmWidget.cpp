@@ -3,7 +3,7 @@
    \author Kenta Suzuki
 */
 
-#include "qtcapp/MainWindow.h"
+#include "qtcapp/NetEmWidget.h"
 #include <QByteArray>
 #include <QCheckBox>
 #include <QComboBox>
@@ -14,13 +14,12 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QGridLayout>
+#include <QHBoxLayout>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLabel>
 #include <QLineEdit>
-#include <QMenu>
-#include <QMenuBar>
 #include <QPalette>
 #include <QProcess>
 #include <QPushButton>
@@ -38,11 +37,6 @@ using namespace netem;
 using namespace std;
 
 namespace {
-
-enum MenuID {
-    FILE, EDIT, OPTION,
-    HELP, NUM_MENUS
-};
 
 vector<string> split(const string& s, char delim)
 {
@@ -90,21 +84,6 @@ const QStringList names = {
             "Rate Cell Size [byte]",   "Rate Cell Overhead [byte]",
               "Slot Min Delay [ms]",         "Slot Max Delay [ms]",
             "Slot Distribution [-]"
-};
-
-struct ActionInfo {
-    const char* label;
-    bool checkable;
-    bool checked;
-    bool enabled;
-    int menu;
-};
-
-ActionInfo actionInfo[] = {
-    { "Import",            false, false,  true,   FILE },
-    { "Export",            false, false,  true,   FILE },
-    { "Quit",              false, false,  true,   FILE },
-    { "Advanced settings", false, false,  true, OPTION },
 };
 
 struct ComboInfo {
@@ -211,17 +190,13 @@ public:
 };
 
 
-class MainWindowImpl
+class NetEmWidgetImpl
 {
 public:
-    MainWindowImpl(MainWindow* self);
-    virtual ~MainWindowImpl();
-    MainWindow* self;
+    NetEmWidgetImpl(NetEmWidget* self);
+    virtual ~NetEmWidgetImpl();
+    NetEmWidget* self;
 
-    enum ActionID {
-        IMPORT, EXPORT, QUIT,
-        SETTING, NUM_ACTIONS
-    };
     enum ComboID { IFC, IFB, NUM_COMBOS };
     enum LineID { SRC, DST, NUM_LINES };
     enum SpinID {
@@ -231,22 +206,21 @@ public:
         NUM_DSPINS
     };
 
-    QMenu* menus[NUM_MENUS];
-    QAction* actions[NUM_ACTIONS];
     QComboBox* combos[NUM_COMBOS];
     QLineEdit* lines[NUM_LINES];
     QDoubleSpinBox* dspins[NUM_DSPINS];
-    QPushButton* applyButton;
 
     QProcess process;
     ConfigDialog* config;
     bool isUpdated;
     bool isFinalized;
+    bool isStarted;
 
+    void onImportButtonClicked();
+    void onExportButtonClicked();
     void onClearButtonClicked();
-    void onApplyButtonToggled(const bool& on);
-    void onImportActionTriggered(const bool& on);
-    void onExportActionTriggered(const bool& on);
+    void onStartButtonClicked();
+    void onStopButtonClicked();
 
     void start();
     void write(const string& program);
@@ -262,32 +236,19 @@ public:
 }
 
 
-MainWindow::MainWindow(QWidget* parent)
-    : QMainWindow(parent)
+NetEmWidget::NetEmWidget(QWidget* parent)
+    : QWidget(parent)
 {
-    impl = new MainWindowImpl(this);
+    impl = new NetEmWidgetImpl(this);
 }
 
 
-MainWindowImpl::MainWindowImpl(MainWindow* self)
+NetEmWidgetImpl::NetEmWidgetImpl(NetEmWidget* self)
     : self(self)
 {
     self->setWindowTitle("qtcapp");
 
-    static const char* topMenus[] ={ "&File", "&Edit", "&Option", "&Help" };
-    for(int i = 0; i < NUM_MENUS; ++i) {
-        menus[i] = self->menuBar()->addMenu(topMenus[i]);
-    }
-
-    for(int i = 0; i < NUM_ACTIONS; ++i) {
-        ActionInfo info = actionInfo[i];
-        actions[i] = new QAction(info.label);
-        QAction* action = actions[i];
-        action->setCheckable(info.checkable);
-        action->setChecked(info.checked);
-        action->setEnabled(info.enabled);
-        menus[info.menu]->addAction(action);
-    }
+    isStarted = false;
 
     isUpdated = false;
     isFinalized = true;
@@ -332,13 +293,13 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
     const QStringList items = { "ifb0", "ifb1" };
     ifbCombo->addItems(items);
 
-    QGridLayout* bsgbox = new QGridLayout;
-    bsgbox->addWidget(new QLabel("Inbound"), 0, 1);
-    bsgbox->addWidget(new QLabel("Outbound"), 0, 2);
+    QGridLayout* configBox = new QGridLayout;
+    configBox->addWidget(new QLabel("Inbound"), 0, 1);
+    configBox->addWidget(new QLabel("Outbound"), 0, 2);
 
     static const char* labels[] = { "Dealy Time [ms]", "Loss Percent [%]", "Rate Rate [kbit/s]" };
     for(int i = 0; i < 3; ++i) {
-        bsgbox->addWidget(new QLabel(labels[i]), i + 1, 0);
+        configBox->addWidget(new QLabel(labels[i]), i + 1, 0);
     }
 
     for(int i = 0; i < NUM_DSPINS; ++i) {
@@ -347,87 +308,53 @@ MainWindowImpl::MainWindowImpl(MainWindow* self)
         DoubleSpinInfo info = dspinInfo[i];
         dspin->setRange(info.lower, info.upper);
         dspin->setValue(info.value);
-        bsgbox->addWidget(dspin, info.row, info.cln);
+        configBox->addWidget(dspin, info.row, info.cln);
     }
 
-    QPushButton* resetButton = new QPushButton("Reset");
-    applyButton = new QPushButton("Apply");
-    applyButton->setCheckable(true);
-    bsgbox->addWidget(resetButton, 4, 1);
-    bsgbox->addWidget(applyButton, 4, 2);
+    QPushButton* importButton = new QPushButton("Import");
+    QPushButton* exportButton = new QPushButton("Export");
+    QPushButton* clearButton = new QPushButton("Clear");
+    QPushButton* startButton = new QPushButton("Start");
+    QPushButton* stopButton = new QPushButton("Stop");
 
-    QWidget* centralWidget = new QWidget;
+    QHBoxLayout* hbox = new QHBoxLayout;
+    hbox->addWidget(importButton);
+    hbox->addWidget(exportButton);
+    hbox->addWidget(clearButton);
+    hbox->addStretch();
+    hbox->addWidget(startButton);
+    hbox->addWidget(stopButton);
+
     QVBoxLayout* vbox = new QVBoxLayout;
+    vbox->addLayout(hbox);
     vbox->addLayout(gbox);
-    vbox->addSpacing(10);
-    vbox->addLayout(bsgbox);
+    vbox->addLayout(configBox);
     vbox->addStretch();
-    centralWidget->setLayout(vbox);
-    self->setCentralWidget(centralWidget);
+    self->setLayout(vbox);
 
-    self->connect(resetButton, &QPushButton::clicked, [&](){ onClearButtonClicked(); });
-    self->connect(applyButton, QOverload<bool>::of(&QPushButton::toggled),
-        [=](bool on){ onApplyButtonToggled(on); });
-    self->connect(actions[QUIT], &QAction::triggered, [&, self](){ self->close(); });
-    self->connect(actions[IMPORT], QOverload<bool>::of(&QAction::triggered),
-        [=](bool on){ onImportActionTriggered(on); });
-    self->connect(actions[EXPORT], QOverload<bool>::of(&QAction::triggered),
-        [=](bool on){ onExportActionTriggered(on); });
-    self->connect(actions[SETTING], &QAction::triggered, [&](){ config->show(); });
+    self->connect(importButton, &QPushButton::clicked, [&](){ onImportButtonClicked(); });
+    self->connect(exportButton, &QPushButton::clicked, [&](){ onExportButtonClicked(); });
+    self->connect(clearButton, &QPushButton::clicked, [&](){ onClearButtonClicked(); });
+    self->connect(startButton, &QPushButton::clicked, [&](){ onStartButtonClicked(); });
+    self->connect(stopButton, &QPushButton::clicked, [&](){ onStopButtonClicked(); });
 
     process.start("bash");
 }
 
 
-MainWindow::~MainWindow()
+NetEmWidget::~NetEmWidget()
 {
     delete impl;
 }
 
 
-MainWindowImpl::~MainWindowImpl()
+NetEmWidgetImpl::~NetEmWidgetImpl()
 {
     process.close();
 }
 
 
-bool MainWindow::load(const string& filename)
-{
-    return impl->load(filename);
-}
-
-
-void MainWindowImpl::onClearButtonClicked()
-{
-    for(int i = 0; i < NUM_COMBOS; ++i) {
-        combos[i]->setCurrentIndex(0);
-    }
-    for(int i = 0; i < NUM_LINES; ++i) {
-        lines[i]->setText("0.0.0.0/0");
-    }
-    for(int i = 0; i < NUM_DSPINS; ++i) {
-        dspins[i]->setValue(0.0);
-    }
-}
-
-
-void MainWindowImpl::onApplyButtonToggled(const bool& on)
-{
-    QPalette palette;
-    if(on) {
-        palette.setColor(QPalette::Button, QColor(Qt::red));
-        start();
-        update();
-    } else {
-        close();
-    }
-    combos[IFC]->setEnabled(!on);
-    combos[IFB]->setEnabled(!on);
-    applyButton->setPalette(palette);
-}
-
-
-void MainWindowImpl::onImportActionTriggered(const bool& on)
+void NetEmWidgetImpl::onImportButtonClicked()
 {
     QFileDialog dialog(self);
     dialog.setOption(QFileDialog::DontUseNativeDialog);
@@ -443,13 +370,13 @@ void MainWindowImpl::onImportActionTriggered(const bool& on)
     dialog.setNameFilters(filters);
 
     if(dialog.exec()) {
-        QString filename = dialog.selectedFiles().front();
-        self->load(filename.toStdString());
+        string filename = dialog.selectedFiles().front().toStdString();
+        load(filename);
     }
 }
 
 
-void MainWindowImpl::onExportActionTriggered(const bool& on)
+void NetEmWidgetImpl::onExportButtonClicked()
 {
     QFileDialog dialog(self);
     dialog.setOption(QFileDialog::DontUseNativeDialog);
@@ -474,7 +401,46 @@ void MainWindowImpl::onExportActionTriggered(const bool& on)
 }
 
 
-void MainWindowImpl::start()
+void NetEmWidgetImpl::onClearButtonClicked()
+{
+    for(int i = 0; i < NUM_COMBOS; ++i) {
+        combos[i]->setCurrentIndex(0);
+    }
+    for(int i = 0; i < NUM_LINES; ++i) {
+        lines[i]->setText("0.0.0.0/0");
+    }
+    for(int i = 0; i < NUM_DSPINS; ++i) {
+        dspins[i]->setValue(0.0);
+    }
+}
+
+
+void NetEmWidgetImpl::onStartButtonClicked()
+{
+    if(isStarted) {
+        onStopButtonClicked();
+    }
+
+    isStarted = true;
+
+    start();
+    update();
+    combos[IFC]->setEnabled(false);
+    combos[IFB]->setEnabled(false);
+}
+
+
+void NetEmWidgetImpl::onStopButtonClicked()
+{
+    isStarted = false;
+
+    close();
+    combos[IFC]->setEnabled(true);
+    combos[IFB]->setEnabled(true);
+}
+
+
+void NetEmWidgetImpl::start()
 {
     string ifbName = combos[IFB]->currentText().toStdString();
     if(!isFinalized) {
@@ -488,7 +454,7 @@ void MainWindowImpl::start()
 }
 
 
-void MainWindowImpl::write(const string& program)
+void NetEmWidgetImpl::write(const string& program)
 {
     QByteArray data;
     data.append(QString(program.c_str()));
@@ -501,7 +467,7 @@ void MainWindowImpl::write(const string& program)
 }
 
 
-void MainWindowImpl::clear()
+void NetEmWidgetImpl::clear()
 {
     string ifcName = combos[IFC]->currentText().toStdString();
     string ifbName = combos[IFB]->currentText().toStdString();
@@ -514,7 +480,7 @@ void MainWindowImpl::clear()
 }
 
 
-void MainWindowImpl::update()
+void NetEmWidgetImpl::update()
 {
     string ifcName = combos[IFC]->currentText().toStdString();
     string ifbName = combos[IFB]->currentText().toStdString();
@@ -796,7 +762,7 @@ void MainWindowImpl::update()
 }
 
 
-void MainWindowImpl::close()
+void NetEmWidgetImpl::close()
 {
     string ifbName = combos[IFB]->currentText().toStdString();
     if(!isFinalized) {
@@ -808,7 +774,7 @@ void MainWindowImpl::close()
 }
 
 
-bool MainWindowImpl::save(const string& filename)
+bool NetEmWidgetImpl::save(const string& filename)
 {
     QString fileName = filename.c_str();
     QFileInfo fileInfo(fileName);
@@ -831,7 +797,7 @@ bool MainWindowImpl::save(const string& filename)
 }
 
 
-bool MainWindowImpl::load(const string& filename)
+bool NetEmWidgetImpl::load(const string& filename)
 {
     QFile loadFile(filename.c_str());
     if(!loadFile.open(QIODevice::ReadOnly)) {
@@ -849,7 +815,7 @@ bool MainWindowImpl::load(const string& filename)
 }
 
 
-void MainWindowImpl::read(const QJsonObject& json)
+void NetEmWidgetImpl::read(const QJsonObject& json)
 {
     const QJsonValue v0 = json["combo"];
     if(v0.isArray()) {
@@ -903,7 +869,7 @@ void MainWindowImpl::read(const QJsonObject& json)
 }
 
 
-void MainWindowImpl::write(QJsonObject& json) const
+void NetEmWidgetImpl::write(QJsonObject& json) const
 {
     QJsonArray comboArray;
     for(int i = 0; i < NUM_COMBOS; ++i) {
