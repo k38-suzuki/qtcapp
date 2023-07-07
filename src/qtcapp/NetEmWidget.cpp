@@ -311,19 +311,30 @@ NetEmWidgetImpl::NetEmWidgetImpl(NetEmWidget* self)
         configBox->addWidget(dspin, info.row, info.cln);
     }
 
-    QPushButton* importButton = new QPushButton("Import");
-    QPushButton* exportButton = new QPushButton("Export");
-    QPushButton* clearButton = new QPushButton("Clear");
+    QPushButton* importButton = new QPushButton("");
+    QIcon importIcon = QIcon::fromTheme("document-open");
+    importButton->setIcon(importIcon);
+    importButton->setToolTip("Import settings");
+    QPushButton* exportButton = new QPushButton("");
+    QIcon exportIcon = QIcon::fromTheme("document-save");
+    exportButton->setIcon(exportIcon);
+    exportButton->setToolTip("Export settings");
+    QPushButton* optionButton = new QPushButton("");
+    QIcon optionIcon = QIcon::fromTheme("preferences-system");
+    optionButton->setIcon(optionIcon);
+    optionButton->setToolTip("Show the option dialog");
     QPushButton* startButton = new QPushButton("Start");
     QPushButton* stopButton = new QPushButton("Stop");
+    QPushButton* clearButton = new QPushButton("Clear");
 
     QHBoxLayout* hbox = new QHBoxLayout;
     hbox->addWidget(importButton);
     hbox->addWidget(exportButton);
-    hbox->addWidget(clearButton);
+    hbox->addWidget(optionButton);
     hbox->addStretch();
     hbox->addWidget(startButton);
     hbox->addWidget(stopButton);
+    hbox->addWidget(clearButton);
 
     QVBoxLayout* vbox = new QVBoxLayout;
     vbox->addLayout(hbox);
@@ -335,6 +346,7 @@ NetEmWidgetImpl::NetEmWidgetImpl(NetEmWidget* self)
     self->connect(importButton, &QPushButton::clicked, [&](){ onImportButtonClicked(); });
     self->connect(exportButton, &QPushButton::clicked, [&](){ onExportButtonClicked(); });
     self->connect(clearButton, &QPushButton::clicked, [&](){ onClearButtonClicked(); });
+    self->connect(optionButton, &QPushButton::clicked, [&](){ config->show(); });
     self->connect(startButton, &QPushButton::clicked, [&](){ onStartButtonClicked(); });
     self->connect(stopButton, &QPushButton::clicked, [&](){ onStopButtonClicked(); });
 
