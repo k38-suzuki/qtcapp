@@ -27,6 +27,7 @@
 #include <boost/format.hpp>
 #include <iostream>
 #include <sstream>
+#include <stdlib.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -194,7 +195,6 @@ class NetEmWidgetImpl
 {
 public:
     NetEmWidgetImpl(NetEmWidget* self);
-    virtual ~NetEmWidgetImpl();
     NetEmWidget* self;
 
     enum ComboID { IFC, IFB, NUM_COMBOS };
@@ -212,8 +212,6 @@ public:
 
     QProcess process;
     ConfigDialog* config;
-    bool isUpdated;
-    bool isFinalized;
     bool isStarted;
 
     void onOpenButtonClicked();
@@ -221,12 +219,14 @@ public:
     void onClearButtonClicked();
     void onStartButtonClicked();
     void onStopButtonClicked();
+    void onProcessStateChanged(QProcess::ProcessState newState);
 
     void start();
-    void write(const string& program);
-    void clear();
-    void update();
+    void stop();
     void close();
+    void write();
+    void execute(const string& program);
+
     bool save(const string& filename);
     bool load(const string& filename);
     void read(const QJsonObject& json);
@@ -249,9 +249,6 @@ NetEmWidgetImpl::NetEmWidgetImpl(NetEmWidget* self)
     self->setWindowTitle("qtcapp");
 
     isStarted = false;
-
-    isUpdated = false;
-    isFinalized = true;
 
     config = new ConfigDialog;
 
@@ -349,20 +346,13 @@ NetEmWidgetImpl::NetEmWidgetImpl(NetEmWidget* self)
     self->connect(optionButton, &QPushButton::clicked, [&](){ config->show(); });
     self->connect(startButton, &QPushButton::clicked, [&](){ onStartButtonClicked(); });
     self->connect(stopButton, &QPushButton::clicked, [&](){ onStopButtonClicked(); });
-
-    process.start("bash");
+    self->connect(&process, &QProcess::stateChanged, [&](QProcess::ProcessState newState){ onProcessStateChanged(newState); });
 }
 
 
 NetEmWidget::~NetEmWidget()
 {
     delete impl;
-}
-
-
-NetEmWidgetImpl::~NetEmWidgetImpl()
-{
-    process.close();
 }
 
 
@@ -429,78 +419,75 @@ void NetEmWidgetImpl::onClearButtonClicked()
 
 void NetEmWidgetImpl::onStartButtonClicked()
 {
-    if(isStarted) {
-        onStopButtonClicked();
-    }
-
-    isStarted = true;
-
+    onStopButtonClicked();
     start();
-    update();
-    combos[IFC]->setEnabled(false);
-    combos[IFB]->setEnabled(false);
 }
 
 
 void NetEmWidgetImpl::onStopButtonClicked()
 {
-    isStarted = false;
-
     close();
-    combos[IFC]->setEnabled(true);
-    combos[IFB]->setEnabled(true);
+    stop();
+}
+
+
+void NetEmWidgetImpl::onProcessStateChanged(QProcess::ProcessState newState)
+{
+    switch(newState) {
+        case QProcess::NotRunning:
+            // emit self->output("Not runnging");
+            combos[IFC]->setEnabled(true);
+            combos[IFB]->setEnabled(true);
+            break;
+        case QProcess::Starting:
+            // emit self->output("Starting");
+            combos[IFC]->setEnabled(false);
+            combos[IFB]->setEnabled(false);
+            break;
+        case QProcess::Running:
+            // emit self->output("Running");
+            write();
+            break;
+        default:
+            break;
+    }
 }
 
 
 void NetEmWidgetImpl::start()
 {
-    string ifbName = combos[IFB]->currentText().toStdString();
-    if(!isFinalized) {
-        close();
-    }
-    write("sudo modprobe ifb;");
-    write("sudo modprobe act_mirred;");
-    write((boost::format("sudo ip link set dev %s up;") % ifbName.c_str()).str());
-    isUpdated = false;
-    isFinalized = false;
+    isStarted = true;
+    process.start("bash");
 }
 
 
-void NetEmWidgetImpl::write(const string& program)
+void NetEmWidgetImpl::stop()
 {
-    QByteArray data;
-    data.append(QString(program.c_str()));
-    data.append("\n");
-    process.write(data);
-
-#ifdef DEBUG
-    cout << program << endl;
-#endif
+    isStarted = false;
+    process.close();    
 }
 
 
-void NetEmWidgetImpl::clear()
-{
-    string ifcName = combos[IFC]->currentText().toStdString();
-    string ifbName = combos[IFB]->currentText().toStdString();
-    if(isUpdated) {
-        write((boost::format("sudo tc qdisc del dev %s ingress;") % ifcName.c_str()).str());
-        write((boost::format("sudo tc qdisc del dev %s root;") % ifbName.c_str()).str());
-        write((boost::format("sudo tc qdisc del dev %s root;") % ifcName.c_str()).str());
-        isUpdated = false;
-    }
-}
-
-
-void NetEmWidgetImpl::update()
+void NetEmWidgetImpl::close()
 {
     string ifcName = combos[IFC]->currentText().toStdString();
     string ifbName = combos[IFB]->currentText().toStdString();
 
-    if(ifcName.empty()) {
-        return;
-    }
+    if(isStarted) {
+        // clear settings
+        execute((boost::format("sudo tc qdisc del dev %s ingress") % ifcName.c_str()).str());
+        execute((boost::format("sudo tc qdisc del dev %s root") % ifbName.c_str()).str());
+        execute((boost::format("sudo tc qdisc del dev %s root") % ifcName.c_str()).str());
 
+        // finalize
+        execute((boost::format("sudo ip link set dev %s down") % ifbName.c_str()).str());
+        execute("sudo rmmod ifb");
+    }
+}
+
+
+void NetEmWidgetImpl::write()
+{
     double inboundDelayTime = dspins[IN_DLY_TIM]->value();
     double inboundLossPercent = dspins[IN_LOS_PCT]->value();
     double inboundRateRate = dspins[IN_RAT_RAT]->value();
@@ -753,36 +740,43 @@ void NetEmWidgetImpl::update()
         dstipName = "0.0.0.0/0";
     }
 
-    if(!isFinalized) {
-        clear();
-        write((boost::format("sudo tc qdisc add dev %s ingress handle ffff:;") % ifcName.c_str()).str());
-        write((boost::format("sudo tc filter add dev %s parent ffff: protocol ip u32 match u32 0 0 action mirred egress redirect dev %s;") % ifcName.c_str() % ifbName.c_str()).str());
-        write((boost::format("sudo tc qdisc add dev %s root handle 1: prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;") % ifbName.c_str()).str());
-        write((boost::format("sudo tc qdisc add dev %s parent 1:1 handle 10: netem limit %s;") % ifbName.c_str() % to_string((int)inboundLimitPackets)).str());
-        if((!srcipName.empty()) && (!dstipName.empty())) {
-            write((boost::format("sudo tc qdisc add dev %s parent 1:2 handle 20: netem %s;") % ifbName.c_str() % inboundEffects.c_str()).str());
-            write((boost::format("sudo tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip src %s match ip dst %s flowid 1:2;") % ifbName.c_str() % dstipName.c_str() % srcipName.c_str()).str());
-        }
-        write((boost::format("sudo tc qdisc add dev %s root handle 1: prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;") % ifcName.c_str()).str());
-        write((boost::format("sudo tc qdisc add dev %s parent 1:1 handle 10: netem limit %s;") % ifcName.c_str() % to_string((int)outboundLimitPackets)).str());
-        if((!srcipName.empty()) && (!dstipName.empty())) {
-            write((boost::format("sudo tc qdisc add dev %s parent 1:2 handle 20: netem %s;") % ifcName.c_str() % outboundEffects.c_str()).str());
-            write((boost::format("sudo tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip src %s match ip dst %s flowid 1:2;") % ifcName.c_str() % srcipName.c_str() % dstipName.c_str()).str());
-        }
-        isUpdated = true;
+    string ifcName = combos[IFC]->currentText().toStdString();
+    string ifbName = combos[IFB]->currentText().toStdString();
+
+    // initialize
+    execute("sudo modprobe ifb");
+    execute("sudo modprobe act_mirred");
+    execute((boost::format("sudo ip link set dev %s up") % ifbName.c_str()).str());
+
+    // apply settings
+    execute((boost::format("sudo tc qdisc add dev %s ingress handle ffff:") % ifcName.c_str()).str());
+    execute((boost::format("sudo tc filter add dev %s parent ffff: protocol ip u32 match u32 0 0 action mirred egress redirect dev %s") % ifcName.c_str() % ifbName.c_str()).str());
+    execute((boost::format("sudo tc qdisc add dev %s root handle 1: prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0") % ifbName.c_str()).str());
+    execute((boost::format("sudo tc qdisc add dev %s parent 1:1 handle 10: netem limit %s") % ifbName.c_str() % to_string((int)inboundLimitPackets)).str());
+    if((!srcipName.empty()) && (!dstipName.empty())) {
+        execute((boost::format("sudo tc qdisc add dev %s parent 1:2 handle 20: netem %s") % ifbName.c_str() % inboundEffects.c_str()).str());
+        execute((boost::format("sudo tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip src %s match ip dst %s flowid 1:2") % ifbName.c_str() % dstipName.c_str() % srcipName.c_str()).str());
+    }
+    execute((boost::format("sudo tc qdisc add dev %s root handle 1: prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0") % ifcName.c_str()).str());
+    execute((boost::format("sudo tc qdisc add dev %s parent 1:1 handle 10: netem limit %s") % ifcName.c_str() % to_string((int)outboundLimitPackets)).str());
+    if((!srcipName.empty()) && (!dstipName.empty())) {
+        execute((boost::format("sudo tc qdisc add dev %s parent 1:2 handle 20: netem %s") % ifcName.c_str() % outboundEffects.c_str()).str());
+        execute((boost::format("sudo tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip src %s match ip dst %s flowid 1:2") % ifcName.c_str() % srcipName.c_str() % dstipName.c_str()).str());
     }
 }
 
 
-void NetEmWidgetImpl::close()
+void NetEmWidgetImpl::execute(const string& program)
 {
-    string ifbName = combos[IFB]->currentText().toStdString();
-    if(!isFinalized) {
-        clear();
-        write((boost::format("sudo ip link set dev %s down;") % ifbName.c_str()).str());
-        write("sudo rmmod ifb;");
-        isFinalized = true;
-    }
+#ifdef DEBUG
+    cout << program << endl;
+#else
+    // QByteArray data;
+    // data.append(QString(program.c_str()));
+    // data.append("\n");
+    // process.write(data);
+    int ret = system(program.c_str());
+#endif
 }
 
 
