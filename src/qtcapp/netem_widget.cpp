@@ -3,7 +3,7 @@
    \author Kenta Suzuki
 */
 
-#include "qtcapp/NetEmWidget.h"
+#include "qtcapp/netem_widget.h"
 #include <QByteArray>
 #include <QCheckBox>
 #include <QComboBox>
@@ -34,7 +34,7 @@
 
 // #define DEBUG
 
-using namespace netem;
+using namespace rqt_netem;
 using namespace std;
 
 namespace {
@@ -150,7 +150,7 @@ DoubleSpinInfo dspinInfo2[] = {
 
 }
 
-namespace netem {
+namespace rqt_netem {
 
 class ConfigDialog : public QDialog
 {

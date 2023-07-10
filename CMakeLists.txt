@@ -14,8 +14,8 @@ endif()
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
-set(sources src/${PROJECT_NAME}/NetEmWidget.cpp)
-set(headers include/${PROJECT_NAME}/NetEmWidget.h)
+set(sources src/${PROJECT_NAME}/netem_widget.cpp)
+set(headers include/${PROJECT_NAME}/netem_widget.h)
 
 option(USE_CATKIN_MAKE "Use catkin_make" ON)
 if(NOT USE_CATKIN_MAKE)
@@ -64,6 +64,7 @@ else()
     include
     ${catkin_INCLUDE_DIRS}
   )
+  link_directories(${catkin_LIBRARY_DIRS})
 
   add_library(${PROJECT_NAME} ${sources} ${headers})
   target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} Qt5::Widgets)
@@ -87,10 +88,10 @@ else()
     PATTERN ".svn" EXCLUDE
   )
 
-  # install(FILES
+  install(FILES
   #   # myfile1
   #   # myfile2
-  #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-  # )
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+  )
 
 endif()

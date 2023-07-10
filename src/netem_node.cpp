@@ -4,9 +4,9 @@
 */
 
 #include <QApplication>
-#include "qtcapp/NetEmWidget.h"
+#include "qtcapp/netem_widget.h"
 
-using namespace netem;
+using namespace rqt_netem;
 
 int main(int argc, char** argv)
 {

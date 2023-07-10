@@ -3,13 +3,13 @@
    \author Kenta Suzuki
 */
 
-#ifndef NETEM_NETEM_WIDGET_H
-#define NETEM_NETEM_WIDGET_H
+#ifndef RQT_NETEM_NETEM_WIDGET_H
+#define RQT_NETEM_NETEM_WIDGET_H
 
 #include <QWidget>
 #include "exportdecl.h"
 
-namespace netem {
+namespace rqt_netem {
 
 class NetEmWidgetImpl;
 
@@ -27,4 +27,4 @@ private:
 
 }
 
-#endif // NETEM_NETEM_WIDGET_H
+#endif // RQT_NETEM_NETEM_WIDGET_H
