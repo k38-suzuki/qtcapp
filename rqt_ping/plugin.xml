@@ -1,0 +1,17 @@
+<library path="lib/librqt_ping">
+  <class name="rqt_ping/MyPlugin" type="rqt_ping::MyPlugin" base_class_type="rqt_gui_cpp::Plugin">
+    <description>
+      A C++ GUI plugin for testing the reachability of a host on an Internet Protocol (IP) network.
+    </description>
+    <qtgui>
+      <group>
+        <label>Miscellaneous Tools</label>
+        <icon type="theme">folder</icon>
+        <statustip>Plugins related to miscellaneous tools.</statustip>
+      </group>
+      <label>Ping</label>
+      <icon type="theme">terminal</icon>
+      <statustip>A C++ GUI plugin for testing the reachability of a host on an Internet Protocol (IP) network.</statustip>
+    </qtgui>
+  </class>
+</library>
