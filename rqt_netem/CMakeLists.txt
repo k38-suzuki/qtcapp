@@ -4,17 +4,17 @@ project(rqt_netem)
 add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
-  std_msgs
   roscpp
   rqt_gui
   rqt_gui_cpp
+  std_msgs
 )
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES rqt_netem
-  CATKIN_DEPENDS std_msgs roscpp rqt_gui rqt_gui_cpp
+  CATKIN_DEPENDS roscpp rqt_gui rqt_gui_cpp std_msgs
 #  DEPENDS system_lib
 )
 
