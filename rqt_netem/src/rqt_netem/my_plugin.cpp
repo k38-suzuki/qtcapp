@@ -26,6 +26,9 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
     QStringList argv = context.argv();
     // create QWidget
     auto widget_ = new MainWindow;
+    if(context.serialNumber() > 1) {
+        widget_->setWindowTitle(widget_->windowTitle() + " (" + QString::number(context.serialNumber()) + ")");
+    }
     // add widget to the user interface
     context.addWidget(widget_);
 }
