@@ -12,8 +12,9 @@ namespace rqt_netem {
 class Bash::Impl
 {
 public:
-    Impl(Bash* self);
     Bash* self;
+
+    Impl(Bash* self);
 
     void start();
     void close();

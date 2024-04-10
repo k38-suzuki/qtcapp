@@ -229,8 +229,9 @@ private:
 class MainWindow::Impl
 {
 public:
-    Impl(MainWindow* self);
     MainWindow* self;
+
+    Impl(MainWindow* self);
 
     void open();
     void save();
