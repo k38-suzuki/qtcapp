@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="rqt_minio_client" name="minio_server" type="launch-minio.sh"/>
+</launch>

@@ -1,0 +1,17 @@
+<library path="lib/librqt_minio_client">
+  <class name="rqt_minio_client/MyPlugin" type="rqt_minio_client::MyPlugin" base_class_type="rqt_gui_cpp::Plugin">
+    <description>
+      A C++ GUI plugin for putting and getting objects from MinIO.
+    </description>
+    <qtgui>
+      <group>
+        <label>Miscellaneous Tools</label>
+        <icon type="theme">folder</icon>
+        <statustip>Plugins related to miscellaneous tools.</statustip>
+      </group>
+      <label>MinIO Client</label>
+      <icon type="theme">terminal</icon>
+      <statustip>A C++ GUI plugin for controlling MinIO.</statustip>
+    </qtgui>
+  </class>
+</library>
