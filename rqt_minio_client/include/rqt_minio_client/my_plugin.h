@@ -20,8 +20,8 @@ public:
     virtual void restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings) override;
 
     // Comment in to signal that the plugin has a way to configure it
-    // bool hasConfiguration() const;
-    // void triggerConfiguration();
+    // virtual bool hasConfiguration() const override;
+    // virtual void triggerConfiguration() override;
 };
 
 } // namespace
