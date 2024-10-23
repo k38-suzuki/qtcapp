@@ -4,6 +4,7 @@ ROS1 package for network emulation.
 Document of Qtcapp (in Japanese)
 https://k38-suzuki.github.io/hairo-world-plugin-doc/tips/qtcapp.html
 
+## Supported platforms
 We have confirmed that Qtcapp works on the following platforms.
 
   Ubuntu Linux 22.04 (x64 architecture)
